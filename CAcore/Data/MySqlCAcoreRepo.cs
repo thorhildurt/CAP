@@ -16,7 +16,7 @@ namespace CAcore.Data
         {   
             return _context.Users.ToList();
         }
-        public User GetUserById(string UserId)
+        public User GetUserByUserId(string UserId)
         {   
             return _context.Users.FirstOrDefault(user => user.UserId == UserId);
         }

@@ -24,9 +24,9 @@ namespace CAcore.Controllers
         }
 
         [HttpGet("{userId}")]
-        public ActionResult <User> GetUserById(string userId)
+        public ActionResult <User> GetUserByUserId(string userId)
         {
-            var user = _repository.GetUserById(userId);
+            var user = _repository.GetUserByUserId(userId);
             return Ok(user);
         }
     }
