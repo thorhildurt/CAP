@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using CAcore.Models;
+using CAcore.Dtos;
 using CAcore.Data;
 using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
 
 namespace CAcore.Controllers
 {
@@ -9,25 +11,31 @@ namespace CAcore.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private ICAcoreRepo _repository;
+        private readonly ICAcoreRepo _repository;
+        private readonly IMapper _mapper;
 
-        public UsersController(ICAcoreRepo repository)
+        public UsersController(ICAcoreRepo repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public ActionResult <IEnumerable<User>> GetAllUsers()
+        public ActionResult <IEnumerable<UserReadDto>> GetAllUsers()
         {
             var users = _repository.GetAllUsers();
-            return Ok(users);
+            return Ok(_mapper.Map<IEnumerable<UserReadDto>>(users));
         }
 
         [HttpGet("{userId}")]
-        public ActionResult <User> GetUserByUserId(string userId)
+        public ActionResult <UserReadDto> GetUserByUserId(string userId)
         {
             var user = _repository.GetUserByUserId(userId);
-            return Ok(user);
+            if(user != null)
+            {
+                return Ok(_mapper.Map<UserReadDto>(user));
+            }
+            return NotFound();
         }
     }
 }

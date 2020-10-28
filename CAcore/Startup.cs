@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using MySql.Data.EntityFrameworkCore.Extensions;
 using Pomelo.EntityFrameworkCore.MySql;
 using MySqlConnector;
+using AutoMapper;
 
 
 namespace CAcore
@@ -36,10 +37,11 @@ namespace CAcore
 
             services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
             services.AddControllers();
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddScoped<ICAcoreRepo, MySqlCAcoreRepo>();
 
-            // Uncomment to test using hardcoded mock data
+            // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             //services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
         }
 
