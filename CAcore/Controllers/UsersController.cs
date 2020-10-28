@@ -23,10 +23,10 @@ namespace CAcore.Controllers
             return Ok(users);
         }
 
-        [HttpGet("{id}")]
-        public ActionResult <User> GetUserById(int id)
+        [HttpGet("{userId}")]
+        public ActionResult <User> GetUserById(string userId)
         {
-            var user = _repository.GetUserById(id);
+            var user = _repository.GetUserById(userId);
             return Ok(user);
         }
     }

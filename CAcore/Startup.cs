@@ -11,6 +11,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using CAcore.Data;
+using Microsoft.EntityFrameworkCore;
+using MySql.Data.EntityFrameworkCore.Extensions;
+using Pomelo.EntityFrameworkCore.MySql;
+using MySqlConnector;
+
 
 namespace CAcore
 {
@@ -26,9 +31,16 @@ namespace CAcore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Set DbConnectionString in user secrets
+            var dbConnectionString = Configuration["DbConnectionString"];
+
+            services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
             services.AddControllers();
 
-            services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
+            services.AddScoped<ICAcoreRepo, MySqlCAcoreRepo>();
+
+            // Uncomment to test using hardcoded mock data
+            //services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

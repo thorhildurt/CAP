@@ -6,6 +6,6 @@ namespace CAcore.Data
     public interface ICAcoreRepo
     {
         IEnumerable<User> GetAllUsers();
-        User GetUserById(int id);
+        User GetUserById(string UserId);
     }
 }
