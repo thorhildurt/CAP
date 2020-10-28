@@ -9,19 +9,24 @@ namespace CAcore.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly MockCAcoreRepo _reposiotry = new MockCAcoreRepo();
+        private ICAcoreRepo _repository;
+
+        public UsersController(ICAcoreRepo repository)
+        {
+            _repository = repository;
+        }
 
         [HttpGet]
         public ActionResult <IEnumerable<User>> GetAllUsers()
         {
-            var users = _reposiotry.GetAllUsers();
+            var users = _repository.GetAllUsers();
             return Ok(users);
         }
 
         [HttpGet("{id}")]
         public ActionResult <User> GetUserById(int id)
         {
-            var user = _reposiotry.GetUserById(id);
+            var user = _repository.GetUserById(id);
             return Ok(user);
         }
     }
