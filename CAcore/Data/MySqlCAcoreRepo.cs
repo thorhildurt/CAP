@@ -35,6 +35,11 @@ namespace CAcore.Data
             _context.Users.Add(usr);
         }
 
+        public void UpdateUser(User usr)
+        {
+            // nothing
+        }
+        
         public bool SaveChanges()
         {
             return (_context.SaveChanges() >= 0);

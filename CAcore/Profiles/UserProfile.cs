@@ -12,6 +12,8 @@ namespace CAcore.Profiles
             CreateMap<User, UserReadDto>();
             // mapping UserCreateDto to User
             CreateMap<UserCreateDto, User>();
+            // mapping UserUpdateDto to User
+            CreateMap<UserUpdateDto, User>();
         }
     }
 }

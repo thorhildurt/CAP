@@ -51,5 +51,26 @@ namespace CAcore.Controllers
             }
             return BadRequest();
         }
+
+        [HttpPut("{userId}")]
+        public ActionResult <UserReadDto> UpdateUser(string userId, UserUpdateDto userUpdateDto)
+        {
+            var userModel = _repository.GetUserByUserId(userId);
+            if (userModel == null)
+            {
+                return NotFound();
+            }
+
+            // the changes made on userUpdateDto are updated in userModel in the db context
+            _mapper.Map(userUpdateDto, userModel);
+
+            // this method does not do anything now, 
+            // but if we do need to change the update implementation we will do it in this method
+            _repository.UpdateUser(userModel);
+            
+            _repository.SaveChanges();
+
+            return NoContent();
+        }
     }
 }

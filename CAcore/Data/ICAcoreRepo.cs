@@ -9,5 +9,6 @@ namespace CAcore.Data
         IEnumerable<User> GetAllUsers();
         User GetUserByUserId(string UserId);
         void CreateUser(User usr);
+        void UpdateUser(User usr);
     }
 }
