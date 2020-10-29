@@ -10,5 +10,6 @@ namespace CAcore.Data
         User GetUserByUserId(string UserId);
         void CreateUser(User usr);
         void UpdateUser(User usr);
+        void DeleteUser(User usr);
     }
 }

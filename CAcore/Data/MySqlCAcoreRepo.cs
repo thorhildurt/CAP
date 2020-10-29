@@ -39,7 +39,16 @@ namespace CAcore.Data
         {
             // nothing
         }
-        
+
+        public void DeleteUser(User usr)
+        {
+            if (usr == null)
+            {
+                throw new ArgumentNullException(nameof(usr));
+            }
+            _context.Users.Remove(usr);
+        }
+
         public bool SaveChanges()
         {
             return (_context.SaveChanges() >= 0);

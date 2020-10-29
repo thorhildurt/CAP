@@ -67,9 +67,22 @@ namespace CAcore.Controllers
             // this method does not do anything now, 
             // but if we do need to change the update implementation we will do it in this method
             _repository.UpdateUser(userModel);
-            
+
             _repository.SaveChanges();
 
+            return NoContent();
+        }
+
+        [HttpDelete("{userId}")]
+        public ActionResult DeleteUser(string userId)
+        {
+            var userModel = _repository.GetUserByUserId(userId);
+            if (userModel == null)
+            {
+                return NotFound();
+            }
+            _repository.DeleteUser(userModel);
+            _repository.SaveChanges();
             return NoContent();
         }
     }

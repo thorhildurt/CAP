@@ -5,6 +5,10 @@ namespace CAcore.Data
 {
     public class MockCAcoreRepo : ICAcoreRepo
     {
+        public void DeleteUser(User usr)
+        {
+            throw new System.NotImplementedException();
+        }
         public void UpdateUser(User usr)
         {
             throw new System.NotImplementedException();
