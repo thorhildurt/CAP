@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CAcore.Models;
+using System;
 
 namespace CAcore.Data
 {
@@ -19,6 +20,24 @@ namespace CAcore.Data
         public User GetUserByUserId(string UserId)
         {   
             return _context.Users.FirstOrDefault(user => user.UserId == UserId);
+        }
+
+        public void CreateUser(User usr)
+        {
+            if (usr == null)
+            {
+                throw new ArgumentNullException(nameof(usr));
+            }
+            if (_context.Users.Where(user => user.Email == usr.Email) != null)
+            {
+                throw new ArgumentException(String.Format("{0} - The email address {1} exists", nameof(usr), usr.Email));
+            }
+            _context.Users.Add(usr);
+        }
+
+        public bool SaveChanges()
+        {
+            return (_context.SaveChanges() >= 0);
         }
     }
 }

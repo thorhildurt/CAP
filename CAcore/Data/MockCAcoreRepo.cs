@@ -5,6 +5,16 @@ namespace CAcore.Data
 {
     public class MockCAcoreRepo : ICAcoreRepo
     {
+        public void CreateUser(User usr)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool SaveChanges()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public IEnumerable<User> GetAllUsers()
         {
             var users = new List<User>

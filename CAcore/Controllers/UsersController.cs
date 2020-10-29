@@ -27,7 +27,7 @@ namespace CAcore.Controllers
             return Ok(_mapper.Map<IEnumerable<UserReadDto>>(users));
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("{userId}", Name="GetUserByUserId")]
         public ActionResult <UserReadDto> GetUserByUserId(string userId)
         {
             var user = _repository.GetUserByUserId(userId);
@@ -36,6 +36,20 @@ namespace CAcore.Controllers
                 return Ok(_mapper.Map<UserReadDto>(user));
             }
             return NotFound();
+        }
+
+        [HttpPost]
+        public ActionResult <UserReadDto> CreateUser(UserCreateDto userCreateDto)
+        {
+            var userModel = _mapper.Map<User>(userCreateDto);
+            _repository.CreateUser(userModel);
+            
+            if (_repository.SaveChanges())
+            {
+                var userReadDto = _mapper.Map<UserReadDto>(userModel);
+                return CreatedAtRoute(nameof(GetUserByUserId), new { UserID = userReadDto.UserId }, userReadDto);
+            }
+            return BadRequest();
         }
     }
 }

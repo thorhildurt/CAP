@@ -7,8 +7,11 @@ namespace CAcore.Profiles
     public class UserProfile : Profile
     {
         public UserProfile()
-        {
+        { 
+            // mapping User to UserReadDto
             CreateMap<User, UserReadDto>();
+            // mapping UserCreateDto to User
+            CreateMap<UserCreateDto, User>();
         }
     }
 }

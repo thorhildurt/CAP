@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 namespace CAcore.Models
 {
     public class User
@@ -14,10 +15,11 @@ namespace CAcore.Models
         [Column("lastname")]
         public string LastName { get; set; }
         [Required]
+
         [Column("email")]
         public string Email { get; set; }
         [Required]
-         [Column("pwd")]
+        [Column("pwd")]
         public string Password { get; set; }
     }
 }
