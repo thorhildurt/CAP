@@ -22,11 +22,21 @@ namespace CAcore.Controllers
 
 
         [HttpPost]
-        public ActionResult <bool> CheckCredentials(UserCredentialsDto credDto) {
-            var user = _repository.GetUserByEmail(credDto.Email);
-            if (user != null && user.Password == credDto.Password) {
+        public ActionResult <bool> CheckCredentials(UserCredentialsDto credDto) 
+        {
+            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+
+            var user = _repository.GetUserByUserId(credDto.UserId);
+
+            if (user != null && user.Password == credDto.Password) 
+            {
                 return Ok(true);
-            } else return Ok(false);
+            } 
+            else 
+            {
+                return Ok(false);
+            }
         }
     }
 }
