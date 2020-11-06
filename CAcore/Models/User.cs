@@ -15,13 +15,10 @@ namespace CAcore.Models
         [Column("lastname")]
         public string LastName { get; set; }
         [Required]
-
         [Column("email")]
         public string Email { get; set; }
         [Required]
         [Column("pwd")]
         public string Password { get; set; }
-        [NotMapped]
-        public string NewPassword { get; set; }
     }
 }

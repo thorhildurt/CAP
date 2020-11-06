@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CAcore.Models;
+using System;
 
 namespace CAcore.Data
 {
@@ -9,7 +10,7 @@ namespace CAcore.Data
         IEnumerable<User> GetAllUsers();
         User GetUserByUserId(string UserId);
         void CreateUser(User usr);
-        void UpdateUser(User usr);
+        void UpdateUser(User usr, string newPassword = "");
         void DeleteUser(User usr);
     }
 }

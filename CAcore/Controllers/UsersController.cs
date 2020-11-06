@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using System.Security.Cryptography;
 using System.Text;
+using System;
+using CAcore.Helpers;
 
 namespace CAcore.Controllers
 {
@@ -15,11 +17,13 @@ namespace CAcore.Controllers
     {
         private readonly ICAcoreRepo _repository;
         private readonly IMapper _mapper;
+        private readonly UserHelper _userHelper;
 
         public UsersController(ICAcoreRepo repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
+            _userHelper= new UserHelper();
         }
 
         [HttpGet]
@@ -62,31 +66,25 @@ namespace CAcore.Controllers
             {
                 return NotFound();
             }
+    
+            if (!String.IsNullOrEmpty(userUpdateDto.Password) && !String.IsNullOrEmpty(userUpdateDto.NewPassword)) 
+            {   
+                string PasswordHash = _userHelper.GetHashedPassword(userUpdateDto.Password);
 
-            var sha1 = SHA1.Create();
-            var hash = sha1.ComputeHash(System.Text.Encoding.UTF8.GetBytes(userUpdateDto.Password));
-            var sBuilder = new StringBuilder();
-
-            for (int i = 0; i < hash.Length; i++)
-            {
-                sBuilder.Append(hash[i].ToString("x2"));
+                // TODO: Maybe refactor once login is implemented
+                if (PasswordHash != userModel.Password)
+                {
+                    return Unauthorized();
+                }
             }
-            
-            string PasswordHash = sBuilder.ToString();
-
-            // TODO: Maybe refactor once login is implemented
-            if (PasswordHash != userModel.Password)
+            else
             {
-                return Unauthorized();
+                userUpdateDto.NewPassword = String.Empty;
+                userUpdateDto.Password = userModel.Password;
             }
 
-            // the changes made on userUpdateDto are updated in userModel in the db context
             _mapper.Map(userUpdateDto, userModel);
-
-            // this method does not do anything now, 
-            // but if we do need to change the update implementation we will do it in this method
-            _repository.UpdateUser(userModel);
-
+            _repository.UpdateUser(userModel, userUpdateDto.NewPassword);
             _repository.SaveChanges();
 
             return NoContent();

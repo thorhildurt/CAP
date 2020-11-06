@@ -9,7 +9,7 @@ namespace CAcore.Data
         {
             throw new System.NotImplementedException();
         }
-        public void UpdateUser(User usr)
+        public void UpdateUser(User usr, string newPassword = "")
         {
             throw new System.NotImplementedException();
         }
