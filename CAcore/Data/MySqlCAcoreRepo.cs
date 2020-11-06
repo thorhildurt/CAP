@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CAcore.Models;
 using System;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CAcore.Data
 {
@@ -37,7 +39,20 @@ namespace CAcore.Data
 
         public void UpdateUser(User usr)
         {
-            // nothing
+            if (usr.NewPassword != null) 
+            {
+                var sha1 = SHA1.Create();
+                var hash = sha1.ComputeHash(System.Text.Encoding.UTF8.GetBytes(usr.NewPassword));
+                var sBuilder = new StringBuilder();
+
+                for (int i = 0; i < hash.Length; i++)
+                {
+                    sBuilder.Append(hash[i].ToString("x2"));
+                }
+                usr.Password = sBuilder.ToString();
+            }
+
+            _context.Users.Update(usr);
         }
 
         public void DeleteUser(User usr)

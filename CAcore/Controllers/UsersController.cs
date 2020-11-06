@@ -4,10 +4,12 @@ using CAcore.Dtos;
 using CAcore.Data;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CAcore.Controllers
 {
-    [Route("api/users")]
+    [Route("users")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -59,6 +61,23 @@ namespace CAcore.Controllers
             if (userModel == null)
             {
                 return NotFound();
+            }
+
+            var sha1 = SHA1.Create();
+            var hash = sha1.ComputeHash(System.Text.Encoding.UTF8.GetBytes(userUpdateDto.Password));
+            var sBuilder = new StringBuilder();
+
+            for (int i = 0; i < hash.Length; i++)
+            {
+                sBuilder.Append(hash[i].ToString("x2"));
+            }
+            
+            string PasswordHash = sBuilder.ToString();
+
+            // TODO: Maybe refactor once login is implemented
+            if (PasswordHash != userModel.Password)
+            {
+                return Unauthorized();
             }
 
             // the changes made on userUpdateDto are updated in userModel in the db context

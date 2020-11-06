@@ -21,5 +21,7 @@ namespace CAcore.Models
         [Required]
         [Column("pwd")]
         public string Password { get; set; }
+        [NotMapped]
+        public string NewPassword { get; set; }
     }
 }
