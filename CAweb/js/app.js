@@ -1,4 +1,5 @@
-const uri = 'https://randomuser.me/api/?results=10';
+//const uri = 'https://randomuser.me/api/?results=10';
+const uri = 'https://localhost:5001/api/users';
 const userDiv = document.getElementById('users');
 
 function getUsers() {
@@ -12,7 +13,7 @@ function _displayUsers(data) {
     let users = data.results
     let mappedUsers = users.map( function(user) {
       let div = createNode('div'), span = createNode('span');
-      span.innerHTML = `${user.name.first} ${user.name.last}`;
+      span.innerHTML = `${user.firstName} ${user.lastName}`;
       append(div, span);
       append(userDiv, div);
     });

@@ -21,11 +21,14 @@ namespace CAcore.Controllers
             _mapper = mapper;
         }
 
-        //[EnableCors("MyPolice")]
+       // [EnableCors("MyPolice")]
         [HttpGet]
         public ActionResult <IEnumerable<UserReadDto>> GetAllUsers()
         {
             var users = _repository.GetAllUsers();
+
+            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             return Ok(_mapper.Map<IEnumerable<UserReadDto>>(users));
         }
 

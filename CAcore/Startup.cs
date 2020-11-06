@@ -44,7 +44,7 @@ namespace CAcore
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
 
-           /* services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+           /*services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
             {
                 builder.AllowAnyOrigin()
                     .AllowAnyMethod()
@@ -60,11 +60,11 @@ namespace CAcore
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseCors("MyPolicy");
+           // app.UseCors("MyPolicy");
             
-            app.UseDefaultFiles();
+            //app.UseDefaultFiles();
             
-            app.UseStaticFiles();
+            //app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 
