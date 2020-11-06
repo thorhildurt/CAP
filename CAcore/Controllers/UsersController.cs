@@ -21,7 +21,6 @@ namespace CAcore.Controllers
             _mapper = mapper;
         }
 
-       // [EnableCors("MyPolice")]
         [HttpGet]
         public ActionResult <IEnumerable<UserReadDto>> GetAllUsers()
         {
@@ -38,6 +37,8 @@ namespace CAcore.Controllers
             var user = _repository.GetUserByUserId(userId);
             if(user != null)
             {
+                // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+                Response.Headers.Add("Access-Control-Allow-Origin", "*");
                 return Ok(_mapper.Map<UserReadDto>(user));
             }
             return NotFound();
