@@ -39,10 +39,10 @@ namespace CAcore
             services.AddControllers();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            // services.AddScoped<ICAcoreRepo, MySqlCAcoreRepo>();
+            services.AddScoped<ICAcoreRepo, MySqlCAcoreRepo>();
 
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
-            services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
+            // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +52,12 @@ namespace CAcore
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            //app.UseCors("MyPolicy");
+            
+            app.UseDefaultFiles();
+            
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 

@@ -4,6 +4,7 @@ using CAcore.Dtos;
 using CAcore.Data;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
+using Microsoft.AspNetCore.Cors;
 
 namespace CAcore.Controllers
 {
@@ -20,6 +21,7 @@ namespace CAcore.Controllers
             _mapper = mapper;
         }
 
+        //[EnableCors("MyPolice")]
         [HttpGet]
         public ActionResult <IEnumerable<UserReadDto>> GetAllUsers()
         {
