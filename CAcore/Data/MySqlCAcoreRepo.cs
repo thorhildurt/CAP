@@ -33,9 +33,9 @@ namespace CAcore.Data
             {
                 throw new ArgumentNullException(nameof(usr));
             }
-            if (_context.Users.Where(user => user.Email == usr.Email) != null)
+            if (_context.Users.Where(user => user.Email == usr.Email).FirstOrDefault() != null)
             {
-                throw new ArgumentException(String.Format("{0} - The email address {1} exists", nameof(usr), usr.Email));
+                throw new ArgumentException(String.Format("{0}- The email address {1} exists", nameof(usr), usr.Email));
             }
             _context.Users.Add(usr);
         }

@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System;
 using CAcore.Helpers;
+using Microsoft.AspNetCore.Cors;
 
 namespace CAcore.Controllers
 {
@@ -26,10 +27,14 @@ namespace CAcore.Controllers
             _userHelper= new UserHelper();
         }
 
+       // [EnableCors("MyPolice")]
         [HttpGet]
         public ActionResult <IEnumerable<UserReadDto>> GetAllUsers()
         {
             var users = _repository.GetAllUsers();
+
+            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             return Ok(_mapper.Map<IEnumerable<UserReadDto>>(users));
         }
 
