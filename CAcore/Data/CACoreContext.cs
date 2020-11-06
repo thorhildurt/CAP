@@ -13,5 +13,6 @@ namespace CAcore.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<UserCertificate> UserCertificates { get; set; }
     }
 }

@@ -11,5 +11,14 @@ namespace CAcore.Data
         void CreateUser(User usr);
         void UpdateUser(User usr);
         void DeleteUser(User usr);
+
+        UserCertificate CreateUserCertificate(string uid);
+
+        void RevokeUserCertificate(UserCertificate cert); 
+
+        IEnumerable<UserCertificate> GetAllUserCertificates(string uid);
+
+        UserCertificate GetUserCertificate(string uid, string cid);
+
     }
 }
