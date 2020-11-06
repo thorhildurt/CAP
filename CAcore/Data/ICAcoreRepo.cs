@@ -8,6 +8,7 @@ namespace CAcore.Data
         bool SaveChanges();
         IEnumerable<User> GetAllUsers();
         User GetUserByUserId(string UserId);
+        User GetUserByEmail(string Email);
         void CreateUser(User usr);
         void UpdateUser(User usr);
         void DeleteUser(User usr);
