@@ -43,6 +43,13 @@ namespace CAcore
 
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
+
+           /* services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+            {
+                builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            }));*/
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +59,12 @@ namespace CAcore
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            //app.UseCors("MyPolicy");
+            
+            app.UseDefaultFiles();
+            
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 
