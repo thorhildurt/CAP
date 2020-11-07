@@ -66,6 +66,7 @@ namespace CAcore.Controllers
         [HttpPut("{userId}")]
         public ActionResult <UserReadDto> UpdateUser(string userId, UserUpdateDto userUpdateDto)
         {
+            Console.WriteLine("bla");
             var userModel = _repository.GetUserByUserId(userId);
             if (userModel == null)
             {
@@ -92,6 +93,8 @@ namespace CAcore.Controllers
             _repository.UpdateUser(userModel, userUpdateDto.NewPassword);
             _repository.SaveChanges();
 
+            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
             return NoContent();
         }
 
