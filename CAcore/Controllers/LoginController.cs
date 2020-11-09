@@ -24,18 +24,21 @@ namespace CAcore.Controllers
         [HttpPost]
         public ActionResult <bool> CheckCredentials(UserCredentialsDto credDto) 
         {
-            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
-            Response.Headers.Add("Access-Control-Allow-Origin", "*");
-
             var user = _repository.GetUserByUserId(credDto.UserId);
+
+            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+            // Source: https://dotnetstories.com/blog/How-to-enable-CORS-for-POST-requests-on-a-single-endpoint-in-ASPNET-Core-en-7186478980?lang=en
+            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS" );
+            Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
             if (user != null && user.Password == credDto.Password) 
             {
-                return Ok(true);
+                return Ok(new {status = true});
             } 
             else 
             {
-                return Ok(false);
+                return Ok(new {status = false});
             }
         }
     }
