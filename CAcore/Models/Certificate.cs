@@ -16,8 +16,12 @@ namespace CAcore.Models
         public string UserId { get; set; }
 
         [Required]
-        [Column("certBody")] // X509Certificate2.RawData
-        public byte[] CertBody { get; set; }
+        [Column("rawCertBody")] // X509Certificate2.RawData
+        public byte[] RawCertBody { get; set; }
+
+        [Required]
+        [Column("certBodyPkcs12")]
+        public byte[] CertBodyPkcs12 { get; set; }
 
         [Required]
         [Column("privateKey")]

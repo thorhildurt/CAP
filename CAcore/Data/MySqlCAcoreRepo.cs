@@ -5,6 +5,9 @@ using CAcore.Models;
 using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using CAcore.Dtos;
+using AutoMapper.Configuration;
+using Org.BouncyCastle.X509;
 
 namespace CAcore.Data
 {
@@ -62,71 +65,91 @@ namespace CAcore.Data
 
         public UserCertificate CreateUserCertificate(string uid)
         {
-            User user = GetUserByUserId(uid);
-            if (user == null) {
-                return null; 
+                User user = GetUserByUserId(uid);
+                if (user == null) {
+                    return null; 
+                }
+                X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                store.Open(OpenFlags.OpenExistingOnly);
+                X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
+                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, Startup.CertThumbnail, false);
+                Console.WriteLine(collection[0].IssuerName.Name);
+                if(fcollection.Count == 0) {
+                    Console.WriteLine("No cert found");
+                    return null; 
+                }
+
+                X509Certificate2 rootCert = fcollection[0];
+
+                Console.WriteLine("Root cert verify " + rootCert.Verify());
+                _verify_certificate(rootCert);
+                ECDsaCng userECDsa = new ECDsaCng();
+                // initializing certificate request 
+                CertificateRequest req = new CertificateRequest($"CN={user.FirstName} {user.LastName}", userECDsa, HashAlgorithmName.SHA256); 
+                req.CertificateExtensions.Add(
+                new X509BasicConstraintsExtension(false, false, 0, false));
+
+                req.CertificateExtensions.Add(
+                    new X509KeyUsageExtension(
+                        X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation,
+                        false));
+
+                // Binding the hash of an object to a time
+                req.CertificateExtensions.Add(
+                    new X509EnhancedKeyUsageExtension(
+                        new OidCollection
+                        {
+                            new Oid("1.3.6.1.5.5.7.3.8")
+                        },
+                        true));
+                //adds an indentifier of public key to cert to make it easier to find
+                req.CertificateExtensions.Add(
+                    new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
+
+
+                // creating certificate signed with the root certificate
+                byte [] serialNumber = new byte[20];
+                rng.GetBytes(serialNumber);
+                X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
+                cert = cert.CopyWithPrivateKey(userECDsa);
+                Console.WriteLine(cert.Verify());
+                _verify_certificate(cert);
+                Console.WriteLine(cert.GetECDsaPublicKey().Equals(cert.GetECDsaPrivateKey()));
+                
+                
+                UserCertificate newCert =  new UserCertificate {
+                    UserId = uid,
+                    CertId = cert.SerialNumber.ToString(), 
+                    CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12),
+                    RawCertBody = cert.RawData,
+                    PrivateKey = cert.GetECDsaPrivateKey().ExportECPrivateKey()
+                    };
+                _context.UserCertificates.Add(newCert);
+                
+                return newCert;
             }
-            X509Store store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
-            store.Open(OpenFlags.OpenExistingOnly);
-            X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
-            X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByIssuerName, "IMovies Core CA", true);
-            Console.WriteLine(store.Certificates.Count);
-            if(fcollection.Count == 0) {
-                Console.WriteLine("No cert found");
-                return null; 
-            }
 
-            X509Certificate2 rootCert = fcollection[0];
+            private void _verify_certificate(X509Certificate2 cert) {
+                X509Chain chain = new X509Chain();
 
-            Console.WriteLine("Root cert verify " + rootCert.Verify());
+                try
+                {
+                    var chainBuilt = chain.Build(cert);
+                    Console.WriteLine(string.Format("Chain building status: {0}", chainBuilt));
 
-              ECDsaCng userECDsa = new ECDsaCng();
-            // initializing certificate request 
-            CertificateRequest req = new CertificateRequest($"CN={user.FirstName} {user.LastName}", userECDsa, HashAlgorithmName.SHA256); 
-            req.CertificateExtensions.Add(
-            new X509BasicConstraintsExtension(false, false, 0, false));
-
-            req.CertificateExtensions.Add(
-                new X509KeyUsageExtension(
-                    X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation,
-                    false));
-
-            // Binding the hash of an object to a time
-            req.CertificateExtensions.Add(
-                new X509EnhancedKeyUsageExtension(
-                    new OidCollection
-                    {
-                        new Oid("1.3.6.1.5.5.7.3.8")
-                    },
-                    true));
-            //adds an indentifier of public key to cert to make it easier to find
-            req.CertificateExtensions.Add(
-                new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
-
-
-            // creating certificate signed with the root certificate
-            byte [] serialNumber = new byte[20];
-            rng.GetBytes(serialNumber);
-            //problem is here -- probably because private key of cert is encrypted
-            X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
-            cert = cert.CopyWithPrivateKey(userECDsa);
-            Console.WriteLine(cert.Verify());
-            Console.WriteLine(cert.GetECDsaPublicKey().Equals(cert.GetECDsaPrivateKey()));
-            
-
-            UserCertificate newCert =  new UserCertificate {
-                UserId = uid,
-                CertId = serialNumber.ToString(), 
-                CertBody = cert.RawData,
-                PrivateKey = cert.GetECDsaPrivateKey().ExportECPrivateKey()
-                };
-            _context.UserCertificates.Add(newCert);
-            
-            return newCert; 
+                    if (chainBuilt == false)
+                        foreach (X509ChainStatus chainStatus in chain.ChainStatus)
+                            Console.WriteLine(string.Format("Chain error: {0} {1}", chainStatus.Status, chainStatus.StatusInformation));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
         }
-
+ 
         public void RevokeUserCertificate(UserCertificate cert)
-        {
+        {   
+            
             throw new NotImplementedException();
         }
 

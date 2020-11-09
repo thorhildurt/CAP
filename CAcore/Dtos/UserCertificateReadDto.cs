@@ -16,9 +16,11 @@ namespace CAcore.Dtos
         public string UserId { get; set; }
 
         [Required]
-        [Column("certBody")] 
+        [Column("certBodyPkcs12")]
         public byte[] CertBodyPkcs12 { get; set; }
 
-        
+        [Required]
+        [Column("privateKey")]
+        public byte[] PrivateKey { get; set; }
     }
 }
