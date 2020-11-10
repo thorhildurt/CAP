@@ -7,7 +7,7 @@ using AutoMapper;
 
 namespace CAcore.Controllers
 {
-    [Route("api/login")]
+    [Route("login")]
     [ApiController]
     public class LoginController : ControllerBase
     {

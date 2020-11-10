@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using CAcore.Models;
 using System;
+using System.Security.Cryptography;
+using System.Text;
+using CAcore.Helpers;
 
 namespace CAcore.Data
 {
     public class MySqlCAcoreRepo : ICAcoreRepo
     {
         private readonly CAcoreContext _context;
+        private readonly UserHelper _userHelper;
         public MySqlCAcoreRepo(CAcoreContext context)
         {
             _context = context;
+            _userHelper= new UserHelper();
         }
         public IEnumerable<User> GetAllUsers()
         {   
@@ -40,9 +45,14 @@ namespace CAcore.Data
             _context.Users.Add(usr);
         }
 
-        public void UpdateUser(User usr)
+        public void UpdateUser(User usr, string newPassword = "")
         {
-            // nothing
+            if (!String.IsNullOrEmpty(newPassword)) 
+            {
+                usr.Password = _userHelper.GetHashedPassword(newPassword);
+            }
+
+            _context.Users.Update(usr);
         }
 
         public void DeleteUser(User usr)

@@ -1,5 +1,5 @@
 
-const baseUri = 'https://localhost:5001/api/';
+const baseUri = 'https://localhost:5001/';
 const getUserUri = baseUri + 'users/';
 
 const userDiv = document.getElementById('users');
@@ -33,6 +33,22 @@ function createNode(element) {
 function append(parent, element) {
   return parent.appendChild(element);
 }
+
+document.getElementById('submit-user-info').addEventListener('click', function() {
+  // TODO: Remove hardcoded userid
+  fetch(baseUri + 'users/lb/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "UserId": "lb",
+      "FirstName": "Bruegger",
+      "LastName": "Lukas"
+    })
+  })
+  .catch(error => console.error('Unable to update user info', error))
+})
 
 // Function calls
 window.onload = getUser;

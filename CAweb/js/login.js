@@ -1,4 +1,4 @@
-const baseUri = 'https://localhost:5001/api/';
+const baseUri = 'https://localhost:5001/';
 const loginUri = baseUri + 'login';
 
 $(document).ready(function(){
