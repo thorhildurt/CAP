@@ -20,7 +20,6 @@ namespace CAcore.Controllers
             _mapper = mapper;
         }
 
-
         [HttpPost]
         public ActionResult <bool> CheckCredentials(UserCredentialsDto credDto) 
         {

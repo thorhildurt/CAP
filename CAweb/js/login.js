@@ -41,7 +41,10 @@ function postData(url = '', input = {}) {
   function _validateLogin(response, data) {
     if (response.status == true) {
         console.log("Successful login");
-        window.location = "/"; //"/users/" + `${data.UserId}`;
+        // get session cookie
+        document.cookie = data.UserId;
+        console.log(document.cookie);
+        window.location = "/"; 
     } 
     else {
         console.log("Invalid username or password!");

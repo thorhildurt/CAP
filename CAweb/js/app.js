@@ -1,13 +1,16 @@
 
 const baseUri = 'https://localhost:5001/api/';
-const getUserUri = baseUri + 'users/tt';
+const getUserUri = baseUri + 'users/';
 
 const userDiv = document.getElementById('users');
 const userNameHeader = document.getElementById('user-name');
 const userEmailHeader = document.getElementById('user-email');
 
 function getUser() {
-  fetch(getUserUri)
+
+  userid = document.cookie
+  if (userid == null) {userid = "test";}
+  fetch(getUserUri + userid)
     .then(response => response.json())
     .then(data => _displayUserInformation(data))
     .catch(error => console.error('Unable to get user information.', error));
@@ -32,5 +35,5 @@ function append(parent, element) {
 }
 
 // Function calls
-getUser();
+window.onload = getUser;
 
