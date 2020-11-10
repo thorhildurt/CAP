@@ -17,7 +17,8 @@ using Pomelo.EntityFrameworkCore.MySql;
 using MySqlConnector;
 using AutoMapper;
 using Microsoft.AspNetCore.Cors;
-
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace CAcore
 {
@@ -37,6 +38,10 @@ namespace CAcore
             var dbConnectionString = Configuration["DbConnectionString"];
 
             services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
+        
+            services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<CAcoreContext>();
+
             services.AddControllers();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
