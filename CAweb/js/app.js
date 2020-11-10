@@ -8,12 +8,13 @@ const userEmailHeader = document.getElementById('user-email');
 
 function getUser() {
 
-  userid = document.cookie
-  if (userid == null) {userid = "test";}
-  fetch(getUserUri + userid)
-    .then(response => response.json())
+  uid = getCookie("UserId");
+  fetch(getUserUri + uid, {
+      method: 'GET',
+      credentials: 'include'
+    }).then(response => response.json())
     .then(data => _displayUserInformation(data))
-    .catch(error => console.error('Unable to get user information.', error));
+    .catch(error => console.log(error)); 
 }
 
 function _displayUserInformation(user) {
@@ -49,6 +50,13 @@ document.getElementById('submit-user-info').addEventListener('click', function()
   })
   .catch(error => console.error('Unable to update user info', error))
 })
+
+function getCookie(name) {
+
+	var value = document.cookie.split('=')[1].trim();
+
+	return (value === undefined) ? null : value;
+};
 
 // Function calls
 window.onload = getUser;

@@ -9,9 +9,12 @@ using System.Text;
 using System;
 using CAcore.Helpers;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CAcore.Controllers
 {
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     [Route("users")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -67,7 +70,6 @@ namespace CAcore.Controllers
         [HttpPut("{userId}")]
         public ActionResult <UserReadDto> UpdateUser(string userId, UserUpdateDto userUpdateDto)
         {
-            Console.WriteLine("bla");
             var userModel = _repository.GetUserByUserId(userId);
             if (userModel == null)
             {
@@ -95,7 +97,7 @@ namespace CAcore.Controllers
             _repository.SaveChanges();
 
             // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
-            Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080");
             return NoContent();
         }
 

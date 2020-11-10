@@ -26,7 +26,7 @@ function postData(url = '', input = {}) {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
         mode: 'cors', // no-cors, *cors, same-origin
         cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: 'same-origin', // include, *same-origin, omit (browser does not include credentials in the query)
+        credentials: 'include', // include, *same-origin, omit (browser does not include credentials in the query)
         headers: {
             'Content-Type': 'application/json',
         },
@@ -34,16 +34,14 @@ function postData(url = '', input = {}) {
         referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         body: JSON.stringify(input) // body data type must match "Content-Type" header
         }).then(response => response.json())
-        .then(data => _validateLogin(data, input))
+        .then(data => _validateLoginAndRoute(data, input))
         .catch(error => console.error('Unable to login', error));
   }
 
-  function _validateLogin(response, data) {
+  function _validateLoginAndRoute(response, data) {
     if (response.status == true) {
         console.log("Successful login");
-        // get session cookie
-        document.cookie = data.UserId;
-        console.log(document.cookie);
+
         window.location = "/"; 
     } 
     else {

@@ -18,7 +18,7 @@ using MySqlConnector;
 using AutoMapper;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace CAcore
 {
@@ -38,9 +38,9 @@ namespace CAcore
             var dbConnectionString = Configuration["DbConnectionString"];
 
             services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
-        
-            services.AddIdentity<IdentityUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<CAcoreContext>();
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => {options.SlidingExpiration = true;options.ExpireTimeSpan = new TimeSpan(0, 1, 0);});
 
             services.AddControllers();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -75,6 +75,8 @@ namespace CAcore
 
             app.UseRouting();
 
+            app.UseAuthentication();
+            
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
