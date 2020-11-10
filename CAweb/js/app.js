@@ -1,5 +1,5 @@
 
-const baseUri = 'https://localhost:5001/api/';
+const baseUri = 'https://localhost:5001/';
 const getUserUri = baseUri + 'users/tt';
 
 const userDiv = document.getElementById('users');
@@ -40,7 +40,7 @@ document.getElementById('submit-user-info').addEventListener('click', function()
     },
     body: JSON.stringify({
       "UserId": "lb",
-      "FirstName": "Bruegger5",
+      "FirstName": "Bruegger",
       "LastName": "Lukas"
     })
   })
