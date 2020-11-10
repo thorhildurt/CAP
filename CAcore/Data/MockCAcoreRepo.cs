@@ -38,5 +38,10 @@ namespace CAcore.Data
         {
             return new User { UserId="1", FirstName="John", LastName="Johnsson", Email="jj@imovie.com", Password="pw" };
         }
+
+        public User GetUserByEmail(string UserId)
+        {
+            return new User { UserId="1", FirstName="John", LastName="Johnsson", Email="jj@imovie.com", Password="pw" };
+        }
     }
 }

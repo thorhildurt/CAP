@@ -27,6 +27,11 @@ namespace CAcore.Data
             return _context.Users.FirstOrDefault(user => user.UserId == UserId);
         }
 
+        public User GetUserByEmail(string Email)
+        {   
+            return _context.Users.FirstOrDefault(user => user.Email == Email);
+        }
+
         public void CreateUser(User usr)
         {
             if (usr == null)

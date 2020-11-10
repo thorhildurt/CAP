@@ -16,6 +16,7 @@ using MySql.Data.EntityFrameworkCore.Extensions;
 using Pomelo.EntityFrameworkCore.MySql;
 using MySqlConnector;
 using AutoMapper;
+using Microsoft.AspNetCore.Cors;
 
 
 namespace CAcore
@@ -44,12 +45,8 @@ namespace CAcore
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
 
-           /*services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
-            {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            }));*/
+            services.AddCors();
+            services.AddMvc(option => option.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -60,11 +57,14 @@ namespace CAcore
                 app.UseDeveloperExceptionPage();
             }
 
-           // app.UseCors("MyPolicy");
-            
-            //app.UseDefaultFiles();
-            
-            //app.UseStaticFiles();
+            app.UseCors(builder => builder
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetIsOriginAllowed((host) => true)
+                .AllowCredentials()
+            );  
+
+            app.UseMvc();
 
             app.UseHttpsRedirection();
 
