@@ -11,65 +11,50 @@ using CAcore.Helpers;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
 
 namespace CAcore.Controllers
 {
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-    [Route("users")]
+    [Route("user")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly ICAcoreRepo _repository;
         private readonly IMapper _mapper;
         private readonly UserHelper _userHelper;
 
-        public UsersController(ICAcoreRepo repository, IMapper mapper)
+        private const String claimNameType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
+
+        public UserController(ICAcoreRepo repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
             _userHelper= new UserHelper();
         }
 
-        [HttpGet]
-        public ActionResult <IEnumerable<UserReadDto>> GetAllUsers()
+        [HttpGet(Name="GetLoggedInUser")]
+        public ActionResult <UserReadDto> GetLoggedInUser()
         {
-            var users = _repository.GetAllUsers();
-
-            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
-            Response.Headers.Add("Access-Control-Allow-Origin", "*");
-            return Ok(_mapper.Map<IEnumerable<UserReadDto>>(users));
-        }
-
-        [HttpGet("{userId}", Name="GetUserByUserId")]
-        public ActionResult <UserReadDto> GetUserByUserId(string userId)
-        {
+            // Get the id of the logged in user, the id is located in claim identity in the authenticatiton cookie
+            var userId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == claimNameType)?.Value;
             var user = _repository.GetUserByUserId(userId);
             if(user != null)
             {
-                // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
-                Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                // TODO: remove/change when we have decided our url
+                Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080/");
                 return Ok(_mapper.Map<UserReadDto>(user));
             }
             return NotFound();
         }
 
-        [HttpPost]
-        public ActionResult <UserReadDto> CreateUser(UserCreateDto userCreateDto)
+        [HttpPut(Name="UpdateLoggedInUser")]
+        public ActionResult <UserReadDto> UpdateLoggedInUser(UserUpdateDto userUpdateDto)
         {
-            var userModel = _mapper.Map<User>(userCreateDto);
-            _repository.CreateUser(userModel);
-            
-            if (_repository.SaveChanges())
-            {
-                var userReadDto = _mapper.Map<UserReadDto>(userModel);
-                return CreatedAtRoute(nameof(GetUserByUserId), new { UserID = userReadDto.UserId }, userReadDto);
-            }
-            return BadRequest();
-        }
-
-        [HttpPut("{userId}")]
-        public ActionResult <UserReadDto> UpdateUser(string userId, UserUpdateDto userUpdateDto)
-        {
+            // Get the id of the logged in user, the id is located in claim identity in the authenticatiton cookie
+            var userId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == claimNameType)?.Value;
+  
             var userModel = _repository.GetUserByUserId(userId);
             if (userModel == null)
             {
@@ -96,21 +81,8 @@ namespace CAcore.Controllers
             _repository.UpdateUser(userModel, userUpdateDto.NewPassword);
             _repository.SaveChanges();
 
-            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+            // TODO: remove/change when we have decided our url
             Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080");
-            return NoContent();
-        }
-
-        [HttpDelete("{userId}")]
-        public ActionResult DeleteUser(string userId)
-        {
-            var userModel = _repository.GetUserByUserId(userId);
-            if (userModel == null)
-            {
-                return NotFound();
-            }
-            _repository.DeleteUser(userModel);
-            _repository.SaveChanges();
             return NoContent();
         }
     }

@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace CAcore.Controllers
 {
-    [Route("login")]
+    [Route("auth")]
     [ApiController]
     public class LoginController : ControllerBase
     {
@@ -27,26 +27,26 @@ namespace CAcore.Controllers
             _userHelper = new UserHelper();
         }
 
-        [HttpPost]
+        [HttpPost("login")]
         public ActionResult <bool> Login(UserCredentialsDto credDto) 
         {
             if (!ModelState.IsValid || credDto == null)
             {
-                return new BadRequestObjectResult(new { Message = "Login failed" });
+                return new BadRequestObjectResult(new { Message = "Login failed", IsLogin = false});
             }
 
             var dbUser = _repository.GetUserByUserId(credDto.UserId);
 
             if (dbUser == null)
             {
-                return Unauthorized();	            
+                return Unauthorized(new { Message = "Invalid username or password", IsLogin = false });	            
             }
 
             var hashedPasword = _userHelper.GetHashedPassword(credDto.Password);
             
             if (hashedPasword != dbUser.Password)
             {
-                return Unauthorized();
+                return Unauthorized(new { Message = "Invalid username or password", IsLogin = false });
             }
 
             var claims = new List<Claim>
@@ -60,16 +60,14 @@ namespace CAcore.Controllers
             HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
                                     new ClaimsPrincipal(claimsIdentity));
 
-            HttpContext.Response.Cookies.Append("Userid", dbUser.UserId);
-
-            // ALLOWS ALL ORIGINS! TODO: remove/change when we have decided our url
+            // TODO: remove/change when we have decided our url
             // Source: https://dotnetstories.com/blog/How-to-enable-CORS-for-POST-requests-on-a-single-endpoint-in-ASPNET-Core-en-7186478980?lang=en
             Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080");
             Response.Headers.Add("Access-Control-Allow-Credentials", "true");
             Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS" );
             Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
             
-            return Ok(new { status = true });
+            return Ok(new { Message = "Successful login", IsLogin = true });
         }
 
         [HttpPost]
