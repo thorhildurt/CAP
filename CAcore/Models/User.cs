@@ -15,7 +15,6 @@ namespace CAcore.Models
         [Column("lastname")]
         public string LastName { get; set; }
         [Required]
-
         [Column("email")]
         public string Email { get; set; }
         [Required]

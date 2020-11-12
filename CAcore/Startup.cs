@@ -16,7 +16,9 @@ using MySql.Data.EntityFrameworkCore.Extensions;
 using Pomelo.EntityFrameworkCore.MySql;
 using MySqlConnector;
 using AutoMapper;
-
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace CAcore
 {
@@ -36,6 +38,14 @@ namespace CAcore
             var dbConnectionString = Configuration["DbConnectionString"];
 
             services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
+
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<CAcoreContext>()
+                .AddDefaultTokenProviders();
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => {options.SlidingExpiration = true;options.ExpireTimeSpan = new TimeSpan(0, 1, 0);});
+
             services.AddControllers();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -43,6 +53,9 @@ namespace CAcore
 
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
+
+            services.AddCors();
+            services.AddMvc(option => option.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,16 +66,21 @@ namespace CAcore
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseCors("MyPolicy");
-            
-            app.UseDefaultFiles();
-            
-            app.UseStaticFiles();
+            app.UseCors(builder => builder
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetIsOriginAllowed((host) => true)
+                .AllowCredentials()
+            );  
+
+            app.UseMvc();
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseAuthentication();
+            
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
