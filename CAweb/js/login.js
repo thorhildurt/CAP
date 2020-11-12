@@ -1,6 +1,7 @@
 const baseUri = 'https://localhost:5001/';
-const loginUri = baseUri + 'login';
+const loginUri = baseUri + 'auth/login';
 
+/* document ready function */
 $(document).ready(function(){
     $("#log-in-button").click(function(){
         var username = $("#user-id").val().trim();
@@ -8,7 +9,7 @@ $(document).ready(function(){
 
         if( username != "" && password != "" ){
             try {
-                postData(loginUri, {UserId:username, Password:password})
+                login(loginUri, {UserId:username, Password:password});
             }
             catch(error) {
                 console.log(error);
@@ -17,11 +18,10 @@ $(document).ready(function(){
     });
 });
 
-// Example POST method implementation:
-function postData(url = '', input = {}) {
-    // Default options are marked with *
-    console.log(input);
 
+/* Logout functions */
+function login(url = '', data = {}) {
+    // Default options are marked with *
     fetch(url, {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
         mode: 'cors', // no-cors, *cors, same-origin
@@ -32,20 +32,19 @@ function postData(url = '', input = {}) {
         },
         redirect: 'follow', // manual, *follow, error
         referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        body: JSON.stringify(input) // body data type must match "Content-Type" header
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
         }).then(response => response.json())
-        .then(data => _validateLoginAndRoute(data, input))
+        .then(jsonData => _validateLoginAndRoute(jsonData))
         .catch(error => console.error('Unable to login', error));
   }
 
-  function _validateLoginAndRoute(response, data) {
-    if (response.status == true) {
-        console.log("Successful login");
-
-        window.location = "/"; 
+  function _validateLoginAndRoute(response) {
+    if (response.isLogin == true) {
+        console.log(response.message);
+        window.location = "/user"; 
     } 
     else {
-        console.log("Invalid username or password!");
+        console.log(response.message);
     }
   };
   

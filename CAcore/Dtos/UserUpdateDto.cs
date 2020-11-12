@@ -4,8 +4,6 @@ namespace CAcore.Dtos
 {
     public class UserUpdateDto
     {   
-        public string UserId { get; set; } 
-
         [Required]
         public string FirstName { get; set; }
 

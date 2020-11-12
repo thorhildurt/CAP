@@ -1,20 +1,39 @@
 
 const baseUri = 'https://localhost:5001/';
-const getUserUri = baseUri + 'users/';
+const getUserUri = baseUri + 'user/';
+const logoutUri = baseUri + 'auth/logout';
 
+/* get dom objects */
 const userDiv = document.getElementById('users');
 const userNameHeader = document.getElementById('user-name');
 const userEmailHeader = document.getElementById('user-email');
 
-function getUser() {
+/* document ready function */
+$(document).ready(function(){
+  $("a#log-out-button").click(function(){
+      try {
+          logout(logoutUri);
+      }
+      catch(error) {
+          console.log(error);
+      }
+  });
+});
 
-  uid = getCookie("UserId");
-  fetch(getUserUri + uid, {
+/* User functions */
+function getUser() {
+    fetch(getUserUri, {
       method: 'GET',
       credentials: 'include'
     }).then(response => response.json())
     .then(data => _displayUserInformation(data))
-    .catch(error => console.log(error)); 
+    .catch(error => _redirect(error)); 
+}
+
+// TODO: fix this, this is not smooth...
+function _redirect(error) {
+  console.log(error);
+  window.location = "/login"; 
 }
 
 function _displayUserInformation(user) {
@@ -84,13 +103,22 @@ $(document).ready(function(){
   .catch(error => console.error('Unable to update user info', error))
 })  */
 
-function getCookie(name) {
+/* Logout functions */
 
-	var value = document.cookie.split('=')[1].trim();
+function logout(url = '')
+{
+    fetch(url, {
+        method:'POST'
+      }).then(response => _logout(response))
+      .catch(error => console.error('Unable to logout', error));
+}
 
-	return (value === undefined) ? null : value;
-};
+function _logout(response)
+{
+  console.log(response);
+  window.location = "/login";
+}
 
-// Function calls
+/* onload activity */
 window.onload = getUser;
 

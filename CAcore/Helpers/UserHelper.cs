@@ -6,7 +6,8 @@ namespace CAcore.Helpers
 {
     public class UserHelper
     {
-        public string GetHashedPassword(String password) {
+        public string GetHashedPassword(String password) 
+        {
             var sha1 = SHA1.Create();
             var hash = sha1.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             var sBuilder = new StringBuilder();
