@@ -48,7 +48,7 @@ namespace CAcore
 
             services.AddControllers();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
+        
             services.AddScoped<ICAcoreRepo, MySqlCAcoreRepo>();
 
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo

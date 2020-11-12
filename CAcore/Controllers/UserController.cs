@@ -54,12 +54,14 @@ namespace CAcore.Controllers
         public ActionResult <UserReadDto> UpdateLoggedInUser(UserUpdateDto userUpdateDto)
         {
             // Get the id of the logged in user, the id is located in claim identity in the authenticatiton cookie
-            var userId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == claimNameType)?.Value;
-            // ClaimsPrincipal currentUser = this.User;
-            // var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            //var userId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == claimNameType)?.Value;
+
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
             userUpdateDto.UserId = userId;
 
             var userModel = _repository.GetUserByUserId(userId);
+      
             if (userModel == null)
             {
                 return NotFound();
@@ -81,7 +83,9 @@ namespace CAcore.Controllers
                 userUpdateDto.Password = userModel.Password;
             }
 
-            _mapper.Map(userUpdateDto, userModel);
+            //_mapper.Map(userUpdateDto, userModel);
+            userModel.FirstName = !String.IsNullOrEmpty(userUpdateDto.FirstName) ? userUpdateDto.FirstName : userModel.FirstName;
+            userModel.LastName = !String.IsNullOrEmpty(userUpdateDto.LastName) ? userUpdateDto.LastName: userModel.LastName;
             _repository.UpdateUser(userModel, userUpdateDto.NewPassword);
             _repository.SaveChanges();
 
