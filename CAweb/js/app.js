@@ -54,21 +54,63 @@ function append(parent, element) {
   return parent.appendChild(element);
 }
 
-document.getElementById('submit-user-info').addEventListener('click', function() {
-  // TODO: Remove hardcoded userid
-  fetch(baseUri + 'users/lb/', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      "UserId": "lb",
-      "FirstName": "Bruegger",
-      "LastName": "Lukas"
-    })
-  })
-  .catch(error => console.error('Unable to update user info', error))
-})
+$(document).ready(function(){
+  $("#submit-user-info").click(function(event){
+      event.preventDefault();
+      var body = {
+        'FirstName': $("#change-first-name").val().trim(),
+        'LastName': $("#change-last-name").val().trim()
+      }
+
+      fetch(getUserUri, {
+        method: 'PUT', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'include', // include, *same-origin, omit (browser does not include credentials in the query)
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(body) // body data type must match "Content-Type" header
+      })
+      .then(response => {
+        response.json();
+        location.reload();
+        scrollTo(0, 0);
+      })
+      .catch(error => console.error('Unable to change user info', error));
+  });
+});
+
+$(document).ready(function(){
+  $("#submit-password-change").click(function(event){
+      event.preventDefault();
+      var body = {
+        'Password': $("#change-password").val().trim(),
+        'NewPassword': $("#change-new-password").val().trim()
+      };
+
+      fetch(getUserUri, {
+        method: 'PUT', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors', // no-cors, *cors, same-origin
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: 'include', // include, *same-origin, omit (browser does not include credentials in the query)
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        redirect: 'follow', // manual, *follow, error
+        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(body) // body data type must match "Content-Type" header
+      })
+      .then(response => {
+        response.json();
+        location.reload();
+        scrollTo(0, 0);
+      })
+      .catch(error => console.error('Unable to change password', error));
+  });
+});
 
 /* Logout functions */
 
