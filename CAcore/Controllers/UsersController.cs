@@ -11,6 +11,7 @@ using CAcore.Helpers;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CAcore.Controllers
 {
@@ -67,9 +68,13 @@ namespace CAcore.Controllers
             return BadRequest();
         }
 
-        [HttpPut("{userId}")]
-        public ActionResult <UserReadDto> UpdateUser(string userId, UserUpdateDto userUpdateDto)
+        [HttpPut]
+        public ActionResult <UserReadDto> UpdateUser(UserUpdateDto userUpdateDto)
         {
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            userUpdateDto.UserId = userId;
+            
             var userModel = _repository.GetUserByUserId(userId);
             if (userModel == null)
             {
