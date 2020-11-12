@@ -21,6 +21,8 @@ namespace CAcore
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStaticWebAssets();
+                
                 });
     }
 }

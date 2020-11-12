@@ -25,7 +25,7 @@ namespace CAcore.Controllers {
             
             var certs = _repository.GetAllUserCertificates(uid);
             System.Console.WriteLine(certs);
-            return Ok(_mapper.Map<IEnumerable<UserCertificateReadDto>>(certs));
+            return Ok(certs);
             
         }
 
@@ -48,6 +48,12 @@ namespace CAcore.Controllers {
             return Ok(cert); 
         }
 
+        [HttpPut("{cid}/revoke")]
+        public ActionResult RevokeCertificate(string uid, string cid) {
+            
+            _repository.RevokeUserCertificate(uid, cid);
+            return Ok("Revoked!");
+        }
 
 
     }

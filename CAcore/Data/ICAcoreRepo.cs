@@ -14,7 +14,7 @@ namespace CAcore.Data
 
         UserCertificate CreateUserCertificate(string uid);
 
-        void RevokeUserCertificate(UserCertificate cert); 
+        void RevokeUserCertificate(string uid, string cid); 
 
         IEnumerable<UserCertificate> GetAllUserCertificates(string uid);
 

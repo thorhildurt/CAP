@@ -1,3 +1,9 @@
+// using System;
+// using System.Collections.Generic;
+// using System.Security.Cryptography;
+// using System.Security.Cryptography.X509Certificates;
+// using CAcore.Models;
+
 
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +14,18 @@ using System.Security.Cryptography.X509Certificates;
 using CAcore.Dtos;
 using AutoMapper.Configuration;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto;
+using System.IO;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Crypto.Prng;
+using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
 
 namespace CAcore.Data
 {
@@ -62,9 +80,9 @@ namespace CAcore.Data
         }
 
 
-
         public UserCertificate CreateUserCertificate(string uid)
         {
+                
                 User user = GetUserByUserId(uid);
                 if (user == null) {
                     return null; 
@@ -72,7 +90,7 @@ namespace CAcore.Data
                 X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                 store.Open(OpenFlags.OpenExistingOnly);
                 X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
-                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, Startup.CertThumbnail, false);
+                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, Startup.CertThumbprint, false);
                 Console.WriteLine(collection[0].IssuerName.Name);
                 if(fcollection.Count == 0) {
                     Console.WriteLine("No cert found");
@@ -85,7 +103,7 @@ namespace CAcore.Data
                 _verify_certificate(rootCert);
                 ECDsaCng userECDsa = new ECDsaCng();
                 // initializing certificate request 
-                CertificateRequest req = new CertificateRequest($"CN={user.FirstName} {user.LastName}", userECDsa, HashAlgorithmName.SHA256); 
+                CertificateRequest req = new CertificateRequest($"CN={user.FirstName} {user.LastName}, E={user.Email}", userECDsa, HashAlgorithmName.SHA256); 
                 req.CertificateExtensions.Add(
                 new X509BasicConstraintsExtension(false, false, 0, false));
 
@@ -147,20 +165,67 @@ namespace CAcore.Data
                 }
         }
  
-        public void RevokeUserCertificate(UserCertificate cert)
+        public void RevokeUserCertificate(string uid, string cid)
         {   
+            //get root cert
+            var rtCrt = getRootCert();
+            X509Certificate rootCert = DotNetUtilities.FromX509Certificate(rtCrt); 
+
+            //get user cert to be revoked
+            UserCertificate userCert = GetUserCertificate(uid, cid);
+            X509Certificate certToRevoke = new X509CertificateParser().ReadCertificate(userCert.RawCertBody);
+
+            X509CrlParser crlParser = new X509CrlParser();
+            X509Crl rootCrl =  crlParser.ReadCrl(File.Open("root.crl", FileMode.Open));
+            Console.WriteLine(rootCrl.ToString());
+            Asn1OctetString prevCrlNum = rootCrl.GetExtensionValue(X509Extensions.CrlNumber);
+            X509V2CrlGenerator crlGenerator = new X509V2CrlGenerator();
+            crlGenerator.SetIssuerDN(rootCert.SubjectDN);
+            crlGenerator.SetThisUpdate(DateTime.UtcNow);
+            crlGenerator.SetNextUpdate(DateTime.UtcNow.AddYears(1));
+            crlGenerator.AddCrl(rootCrl); //add the old CRL
+            crlGenerator.AddCrlEntry(certToRevoke.SerialNumber, DateTime.UtcNow, CrlReason.PrivilegeWithdrawn);
+            CrlNumber nextCrlNum = new CrlNumber(BigInteger.Three);
+            crlGenerator.AddExtension("2.5.29.20", false, nextCrlNum);
             
-            throw new NotImplementedException();
+            var privKey = ((ECDsaCng)rtCrt.GetECDsaPrivateKey());
+            // byte[] privKeyExported = privKey.ExportEncryptedPkcs8PrivateKey();
+            // var bouncyCastlePrivateKey = PrivateKeyFactory.CreateKey(privKeyExported);
+            ECParameters eCParameters =  privKey.ExportParameters(true); // <--- HERE!!!
+            var bouncyCastleD = new BigInteger(eCParameters.D);
+            var bouncyCastlePrivateKey = new ECPrivateKeyParameters("ECDSA", bouncyCastleD,  new DerObjectIdentifier(eCParameters.Curve.Oid.ToString()));
+            var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
+            // var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", rootCert.Get);
+            X509Crl nextCrl = crlGenerator.Generate(sigFactory);
+            Console.WriteLine("!!!! NEW CRL !!!!");
         }
 
+        private X509Certificate2 getRootCert() {
+            X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                store.Open(OpenFlags.OpenExistingOnly);
+                X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
+                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, Startup.CertThumbprint, false);
+                Console.WriteLine(collection[0].IssuerName.Name);
+                if(fcollection.Count == 0) {
+                    Console.WriteLine("No cert found");
+                    return null; 
+                }
+
+                X509Certificate2 rootCert = fcollection[0];
+
+                Console.WriteLine("Root cert verify " + rootCert.Verify());
+                _verify_certificate(rootCert);
+
+                return rootCert; 
+        }
         public IEnumerable<UserCertificate> GetAllUserCertificates(string uid)
         {
-            throw new NotImplementedException();
+            return _context.UserCertificates.Where(cert => cert.UserId == uid);
         }
 
         public UserCertificate GetUserCertificate(string uid, string cid)
         {
-            throw new NotImplementedException();
+            return _context.UserCertificates.FirstOrDefault(cert => cert.CertId == cid && cert.UserId == uid);
         }
     }
 }

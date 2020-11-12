@@ -29,7 +29,7 @@ namespace CAcore
 
         public IConfiguration Configuration { get; }
 
-        public static string CertThumbnail { get; set;}
+        public static string CertThumbprint { get; set;}
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -47,7 +47,7 @@ namespace CAcore
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
 
-            CertThumbnail = Configuration["CertThumbnail"];
+            CertThumbprint = Configuration["CertThumbprint"];
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
