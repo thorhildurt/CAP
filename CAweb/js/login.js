@@ -41,7 +41,7 @@ function login(url = '', data = {}) {
   function _validateLoginAndRoute(response) {
     if (response.isLogin == true) {
         console.log(response.message);
-        window.location = "/user"; 
+        window.location = "/user.html"; 
     } 
     else {
         console.log(response.message);
