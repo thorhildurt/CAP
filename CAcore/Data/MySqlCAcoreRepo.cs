@@ -26,6 +26,11 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Prng;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
+using Org.BouncyCastle.Asn1.Pkcs;
+using System.Text.RegularExpressions;
+using Org.BouncyCastle.OpenSsl;
+using System.Text;
+using X509Extension = System.Security.Cryptography.X509Certificates.X509Extension;
 
 namespace CAcore.Data
 {
@@ -124,13 +129,25 @@ namespace CAcore.Data
                 req.CertificateExtensions.Add(
                     new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
 
+                req.CertificateExtensions.Add(
+                    new X509Extension(
+                        new Oid("2.5.29.31"),
+                        Encoding.ASCII.GetBytes("http://localhost:5000/root.crl"),
+                        false
+                    )
+                );
 
                 // creating certificate signed with the root certificate
                 byte [] serialNumber = new byte[20];
                 rng.GetBytes(serialNumber);
                 X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
                 cert = cert.CopyWithPrivateKey(userECDsa);
-                Console.WriteLine(cert.Verify());
+                File.WriteAllBytes("test.pfx", cert.Export(X509ContentType.Pfx));
+                Console.WriteLine(cert.ToString());
+                foreach(X509Extension ext in cert.Extensions) {
+                    Console.WriteLine(ext.Format(true));
+                }
+                cert.Verify();
                 _verify_certificate(cert);
                 Console.WriteLine(cert.GetECDsaPublicKey().Equals(cert.GetECDsaPrivateKey()));
                 
@@ -168,16 +185,17 @@ namespace CAcore.Data
         public void RevokeUserCertificate(string uid, string cid)
         {   
             //get root cert
-            var rtCrt = getRootCert();
-            X509Certificate rootCert = DotNetUtilities.FromX509Certificate(rtCrt); 
-
+            X509Certificate rootCert = DotNetUtilities.FromX509Certificate(getRootCert()); 
+            
+            
             //get user cert to be revoked
             UserCertificate userCert = GetUserCertificate(uid, cid);
             X509Certificate certToRevoke = new X509CertificateParser().ReadCertificate(userCert.RawCertBody);
 
             X509CrlParser crlParser = new X509CrlParser();
-            X509Crl rootCrl =  crlParser.ReadCrl(File.Open("root.crl", FileMode.Open));
-            Console.WriteLine(rootCrl.ToString());
+            FileStream fileStream = File.Open("Content\\root.crl", FileMode.Open);
+            X509Crl rootCrl =  crlParser.ReadCrl(fileStream);
+            fileStream.Close();
             Asn1OctetString prevCrlNum = rootCrl.GetExtensionValue(X509Extensions.CrlNumber);
             X509V2CrlGenerator crlGenerator = new X509V2CrlGenerator();
             crlGenerator.SetIssuerDN(rootCert.SubjectDN);
@@ -188,16 +206,31 @@ namespace CAcore.Data
             CrlNumber nextCrlNum = new CrlNumber(BigInteger.Three);
             crlGenerator.AddExtension("2.5.29.20", false, nextCrlNum);
             
-            var privKey = ((ECDsaCng)rtCrt.GetECDsaPrivateKey());
-            // byte[] privKeyExported = privKey.ExportEncryptedPkcs8PrivateKey();
-            // var bouncyCastlePrivateKey = PrivateKeyFactory.CreateKey(privKeyExported);
-            ECParameters eCParameters =  privKey.ExportParameters(true); // <--- HERE!!!
-            var bouncyCastleD = new BigInteger(eCParameters.D);
-            var bouncyCastlePrivateKey = new ECPrivateKeyParameters("ECDSA", bouncyCastleD,  new DerObjectIdentifier(eCParameters.Curve.Oid.ToString()));
+            string keyFile= File.ReadAllText("C:\\Users\\radwa\\core_ca\\test\\ca.key");
+
+            Regex regex = new Regex(@"(-----BEGIN EC PRIVATE KEY-----)((.|\n)*)(-----END EC PRIVATE KEY-----)");
+            string keyBase64 = regex.Match(keyFile).Groups[2].ToString();
+            
+            ECDsa eC = ECDsa.Create();
+            eC.ImportECPrivateKey(Convert.FromBase64String(keyBase64), out _);
+            
+            AsymmetricKeyParameter bouncyCastlePrivateKey =  PrivateKeyFactory.CreateKey(eC.ExportPkcs8PrivateKey());
+            
             var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
-            // var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", rootCert.Get);
             X509Crl nextCrl = crlGenerator.Generate(sigFactory);
-            Console.WriteLine("!!!! NEW CRL !!!!");
+            writePem("Content\\root.crl.old", rootCrl);
+            writePem("Content\\root.crl", nextCrl);
+
+            // sanity check
+            nextCrl.Verify(rootCert.GetPublicKey());
+
+        }
+
+        private void writePem(string filename, object obj) {
+            PemWriter pemWriter = new PemWriter(new StreamWriter(File.Open(filename, FileMode.Create)));
+            pemWriter.WriteObject(obj);
+            pemWriter.Writer.Flush();
+            pemWriter.Writer.Close();
         }
 
         private X509Certificate2 getRootCert() {

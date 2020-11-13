@@ -16,7 +16,9 @@ using MySql.Data.EntityFrameworkCore.Extensions;
 using Pomelo.EntityFrameworkCore.MySql;
 using MySqlConnector;
 using AutoMapper;
-
+using System.IO;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Http;
 
 namespace CAcore
 {
@@ -63,6 +65,12 @@ namespace CAcore
             app.UseRouting();
 
             app.UseAuthorization();
+
+            //  Windows-specific, just for testing CRL, probably needs to be served on the web server
+            app.UseStaticFiles(new StaticFileOptions() {
+            FileProvider =  new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Content")),
+            RequestPath = new PathString("")
+            });
 
             app.UseEndpoints(endpoints =>
             {
