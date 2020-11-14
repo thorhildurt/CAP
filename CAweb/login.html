@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>login</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" id="bootstrap-css">
-        <link rel="stylesheet" href="css/loginStyles.css" />
-        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script src="js/login.js"></script>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1">
+         <title>login</title>
+         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" id="bootstrap-css">
+         <link rel="stylesheet" href="css/loginStyles.css" />
+         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+         <script src="js/login.js"></script>
     </head>
     <body>
         <div class="sidenav">
@@ -20,6 +19,10 @@
          <div class="main">
             <div class="col-md-6 col-sm-12">
                <div class="login-form">
+                  <!-- Error Alert -->
+                  <div id="login-error-alert" class="alert alert-danger fade">
+                     <div id='login-error-message'> </div>
+                  </div>
                   <form>
                      <div class="form-group">
                         <label>Employee user id</label>

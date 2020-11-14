@@ -33,7 +33,7 @@ function getUser() {
 // TODO: fix this, this is not smooth...
 function _redirect(error) {
   console.log(error);
-  window.location = "/login"; 
+  window.location = "/login.html"; 
 }
 
 function _displayUserInformation(user) {
@@ -125,7 +125,7 @@ function logout(url = '')
 function _logout(response)
 {
   console.log(response);
-  window.location = "/login";
+  window.location = "/login.html";
 }
 
 /* onload activity */

@@ -3,21 +3,27 @@ const loginUri = baseUri + 'auth/login';
 
 /* document ready function */
 $(document).ready(function(){
+    var errorMessageDiv = document.getElementById('login-error-alert');
+    errorMessageDiv.classList.remove("show");
+
     $("#log-in-button").click(function(){
         var username = $("#user-id").val().trim();
         var password = $("#user-password").val().trim();
 
-        if( username != "" && password != "" ){
-            try {
+            if( username != "" && password != "" ) {
                 login(loginUri, {UserId:username, Password:password});
             }
-            catch(error) {
-                console.log(error);
+            else {
+                var messageDiv = document.getElementById('login-error-message');
+                messageDiv.innerHTML = `Please enter your login information`;
+            
+                var errorMessageDiv = document.getElementById('login-error-alert');
+                errorMessageDiv.classList.add("show");
+    
+                console.error('No login information provided', error);
             }
-        }
     });
 });
-
 
 /* Logout functions */
 function login(url = '', data = {}) {
@@ -35,7 +41,18 @@ function login(url = '', data = {}) {
         body: JSON.stringify(data) // body data type must match "Content-Type" header
         }).then(response => response.json())
         .then(jsonData => _validateLoginAndRoute(jsonData))
-        .catch(error => console.error('Unable to login', error));
+        .catch(error => _errorPopup(error));
+  }
+
+  function _errorPopup(error) {
+
+    var messageDiv = document.getElementById('login-error-message');
+    messageDiv.innerHTML = `A problem has been occurred while login`;
+
+    var errorMessageDiv = document.getElementById('login-error-alert');
+    errorMessageDiv.classList.add("show");
+
+    console.error('API connection problem during login', error);
   }
 
   function _validateLoginAndRoute(response) {
@@ -44,7 +61,14 @@ function login(url = '', data = {}) {
         window.location = "/user.html"; 
     } 
     else {
+        var messageDiv = document.getElementById('login-error-message');
+        messageDiv.innerHTML = `${response.message}`;
+    
+        var errorMessageDiv = document.getElementById('login-error-alert');
+        errorMessageDiv.classList.add("show");
+
         console.log(response.message);
     }
   };
+
   
