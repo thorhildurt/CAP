@@ -26,5 +26,9 @@ namespace CAcore.Models
         [Required]
         [Column("privateKey")]
         public byte[] PrivateKey { get; set; }
+
+        [Required]
+        [Column("revoked")]
+        public bool Revoked { get; set; }
     }
 }

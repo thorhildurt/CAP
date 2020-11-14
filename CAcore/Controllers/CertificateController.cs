@@ -24,35 +24,43 @@ namespace CAcore.Controllers {
         public ActionResult<IEnumerable<UserCertificateReadDto>> GetAllUserCertificates(string uid) {
             
             var certs = _repository.GetAllUserCertificates(uid);
-            System.Console.WriteLine(certs);
-            return Ok(certs);
+            return Ok(_mapper.Map<IEnumerable<UserCertificateReadDto>>(certs));
             
         }
 
         [HttpPost]
         public ActionResult<UserCertificateReadDto> CreateCertificate(string uid) {
-            Console.WriteLine("Create...");
             UserCertificate cert = _repository.CreateUserCertificate(uid);
             if (cert == null) {
-                return null;
+                return BadRequest("Failed to create user certificate. Check that user exists and that the root certificate is in the cert store.");
             }
-            _repository.SaveChanges();
-            UserCertificateReadDto readDto = _mapper.Map<UserCertificateReadDto>(cert); 
-            Console.WriteLine("Create...");
-            return CreatedAtRoute(nameof(GetUserCertificate), new {uid = uid, cid = cert.CertId}, readDto);
+            
+            if(_repository.SaveChanges()) {
+                UserCertificateReadDto readDto = _mapper.Map<UserCertificateReadDto>(cert); 
+                return CreatedAtRoute(nameof(GetUserCertificate), new {uid = uid, cid = cert.CertId}, readDto);
+            }
+
+            return BadRequest("Failed to save certificate to database");
+           
         }
 
         [HttpGet("{cid}", Name = "GetUserCertificate")]
         public ActionResult<IEnumerable<UserCertificate>> GetUserCertificate(string uid, string cid) {
             var cert = _repository.GetUserCertificate(uid, cid);
-            return Ok(cert); 
+            if(cert != null) {
+                return Ok(_mapper.Map<UserCertificateReadDto>(cert));
+            }
+            return NotFound(); 
         }
 
         [HttpPut("{cid}/revoke")]
         public ActionResult RevokeCertificate(string uid, string cid) {
             
             _repository.RevokeUserCertificate(uid, cid);
-            return Ok("Revoked!");
+            if(_repository.SaveChanges()) {
+                return Ok("Certificate successfully revoked");
+            }
+            return BadRequest("Failed to revoke certificate");
         }
 
 

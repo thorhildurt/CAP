@@ -11,26 +11,20 @@ using CAcore.Models;
 using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using CAcore.Dtos;
-using AutoMapper.Configuration;
+using Microsoft.Extensions.Configuration;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto;
 using System.IO;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Crypto.Prng;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
-using Org.BouncyCastle.Asn1.Pkcs;
 using System.Text.RegularExpressions;
 using Org.BouncyCastle.OpenSsl;
-using System.Text;
 using X509Extension = System.Security.Cryptography.X509Certificates.X509Extension;
+using Org.BouncyCastle.X509.Extension;
 
 namespace CAcore.Data
 {
@@ -39,9 +33,12 @@ namespace CAcore.Data
         private readonly CAcoreContext _context;
         private static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
 
-        public MySqlCAcoreRepo(CAcoreContext context)
+        private IConfiguration _configuration;
+        public MySqlCAcoreRepo(CAcoreContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+            
         }
         public IEnumerable<User> GetAllUsers()
         {   
@@ -92,21 +89,14 @@ namespace CAcore.Data
                 if (user == null) {
                     return null; 
                 }
-                X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-                store.Open(OpenFlags.OpenExistingOnly);
-                X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
-                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, Startup.CertThumbprint, false);
-                Console.WriteLine(collection[0].IssuerName.Name);
-                if(fcollection.Count == 0) {
-                    Console.WriteLine("No cert found");
+                
+
+                X509Certificate2 rootCert = getRootCert();
+                if(rootCert == null) {
                     return null; 
                 }
 
-                X509Certificate2 rootCert = fcollection[0];
-
-                Console.WriteLine("Root cert verify " + rootCert.Verify());
-                _verify_certificate(rootCert);
-                ECDsaCng userECDsa = new ECDsaCng();
+                ECDsa userECDsa = ECDsa.Create();
                 // initializing certificate request 
                 CertificateRequest req = new CertificateRequest($"CN={user.FirstName} {user.LastName}, E={user.Email}", userECDsa, HashAlgorithmName.SHA256); 
                 req.CertificateExtensions.Add(
@@ -128,11 +118,17 @@ namespace CAcore.Data
                 //adds an indentifier of public key to cert to make it easier to find
                 req.CertificateExtensions.Add(
                     new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
+                
+
+                GeneralName uri = new GeneralName(GeneralName.UniformResourceIdentifier, _configuration["CrlDistPoint"]);
+                DistributionPoint distPoint = new DistributionPoint(new DistributionPointName(DistributionPointName.FullName, uri), null, null);
+                CrlDistPoint crlDistPoint = new CrlDistPoint(new DistributionPoint[] {distPoint});
+            
 
                 req.CertificateExtensions.Add(
                     new X509Extension(
                         new Oid("2.5.29.31"),
-                        Encoding.ASCII.GetBytes("http://localhost:5000/root.crl"),
+                        crlDistPoint.GetDerEncoded(),
                         false
                     )
                 );
@@ -142,14 +138,7 @@ namespace CAcore.Data
                 rng.GetBytes(serialNumber);
                 X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
                 cert = cert.CopyWithPrivateKey(userECDsa);
-                File.WriteAllBytes("test.pfx", cert.Export(X509ContentType.Pfx));
-                Console.WriteLine(cert.ToString());
-                foreach(X509Extension ext in cert.Extensions) {
-                    Console.WriteLine(ext.Format(true));
-                }
-                cert.Verify();
                 _verify_certificate(cert);
-                Console.WriteLine(cert.GetECDsaPublicKey().Equals(cert.GetECDsaPrivateKey()));
                 
                 
                 UserCertificate newCert =  new UserCertificate {
@@ -163,24 +152,6 @@ namespace CAcore.Data
                 
                 return newCert;
             }
-
-            private void _verify_certificate(X509Certificate2 cert) {
-                X509Chain chain = new X509Chain();
-
-                try
-                {
-                    var chainBuilt = chain.Build(cert);
-                    Console.WriteLine(string.Format("Chain building status: {0}", chainBuilt));
-
-                    if (chainBuilt == false)
-                        foreach (X509ChainStatus chainStatus in chain.ChainStatus)
-                            Console.WriteLine(string.Format("Chain error: {0} {1}", chainStatus.Status, chainStatus.StatusInformation));
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                }
-        }
  
         public void RevokeUserCertificate(string uid, string cid)
         {   
@@ -191,23 +162,55 @@ namespace CAcore.Data
             //get user cert to be revoked
             UserCertificate userCert = GetUserCertificate(uid, cid);
             X509Certificate certToRevoke = new X509CertificateParser().ReadCertificate(userCert.RawCertBody);
-
+            
+            //parse the last CRL
             X509CrlParser crlParser = new X509CrlParser();
-            FileStream fileStream = File.Open("Content\\root.crl", FileMode.Open);
+            FileStream fileStream = File.Open(_configuration["CrlPath"], FileMode.Open);
             X509Crl rootCrl =  crlParser.ReadCrl(fileStream);
             fileStream.Close();
+
+            // extract the CRL number
             Asn1OctetString prevCrlNum = rootCrl.GetExtensionValue(X509Extensions.CrlNumber);
+            Asn1Object obj = X509ExtensionUtilities.FromExtensionValue(prevCrlNum);
+            BigInteger prevCrlNumVal = DerInteger.GetInstance(obj).PositiveValue;
+
+            //generate new CRL
             X509V2CrlGenerator crlGenerator = new X509V2CrlGenerator();
             crlGenerator.SetIssuerDN(rootCert.SubjectDN);
             crlGenerator.SetThisUpdate(DateTime.UtcNow);
-            crlGenerator.SetNextUpdate(DateTime.UtcNow.AddYears(1));
-            crlGenerator.AddCrl(rootCrl); //add the old CRL
+            crlGenerator.SetNextUpdate(DateTime.UtcNow.AddSeconds(10));
+            crlGenerator.AddCrl(rootCrl); //add the old CRL entries
+            //add the newly revoked certificates
             crlGenerator.AddCrlEntry(certToRevoke.SerialNumber, DateTime.UtcNow, CrlReason.PrivilegeWithdrawn);
-            CrlNumber nextCrlNum = new CrlNumber(BigInteger.Three);
-            crlGenerator.AddExtension("2.5.29.20", false, nextCrlNum);
+            //increment CRL Number by 1
+            crlGenerator.AddExtension("2.5.29.20", false, new CrlNumber(prevCrlNumVal.Add(BigInteger.One)));
+            var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", getRootPrivateKey());
+            X509Crl nextCrl = crlGenerator.Generate(sigFactory);
+            writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
+            writePem(_configuration["CrlPath"], nextCrl); //write new CRL
             
-            string keyFile= File.ReadAllText("C:\\Users\\radwa\\core_ca\\test\\ca.key");
+            // sanity check
+            nextCrl.Verify(rootCert.GetPublicKey());
+            
+            userCert.Revoked = true;
+            _context.UserCertificates.Update(userCert);
 
+        }
+
+        
+        public IEnumerable<UserCertificate> GetAllUserCertificates(string uid)
+        {
+            return _context.UserCertificates.Where(cert => cert.UserId == uid);
+        }
+
+        public UserCertificate GetUserCertificate(string uid, string cid)
+        {
+            return _context.UserCertificates.FirstOrDefault(cert => cert.CertId == cid && cert.UserId == uid);
+        }
+
+        private AsymmetricKeyParameter getRootPrivateKey() {
+            string keyFile= File.ReadAllText(_configuration["PrivateKeyPath"]);
+            // extract base64 encoded private key
             Regex regex = new Regex(@"(-----BEGIN EC PRIVATE KEY-----)((.|\n)*)(-----END EC PRIVATE KEY-----)");
             string keyBase64 = regex.Match(keyFile).Groups[2].ToString();
             
@@ -215,15 +218,7 @@ namespace CAcore.Data
             eC.ImportECPrivateKey(Convert.FromBase64String(keyBase64), out _);
             
             AsymmetricKeyParameter bouncyCastlePrivateKey =  PrivateKeyFactory.CreateKey(eC.ExportPkcs8PrivateKey());
-            
-            var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
-            X509Crl nextCrl = crlGenerator.Generate(sigFactory);
-            writePem("Content\\root.crl.old", rootCrl);
-            writePem("Content\\root.crl", nextCrl);
-
-            // sanity check
-            nextCrl.Verify(rootCert.GetPublicKey());
-
+            return bouncyCastlePrivateKey; 
         }
 
         private void writePem(string filename, object obj) {
@@ -237,7 +232,7 @@ namespace CAcore.Data
             X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                 store.Open(OpenFlags.OpenExistingOnly);
                 X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
-                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, Startup.CertThumbprint, false);
+                X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, _configuration["CertThumbprint"], false);
                 Console.WriteLine(collection[0].IssuerName.Name);
                 if(fcollection.Count == 0) {
                     Console.WriteLine("No cert found");
@@ -251,14 +246,25 @@ namespace CAcore.Data
 
                 return rootCert; 
         }
-        public IEnumerable<UserCertificate> GetAllUserCertificates(string uid)
-        {
-            return _context.UserCertificates.Where(cert => cert.UserId == uid);
-        }
 
-        public UserCertificate GetUserCertificate(string uid, string cid)
-        {
-            return _context.UserCertificates.FirstOrDefault(cert => cert.CertId == cid && cert.UserId == uid);
+        private void _verify_certificate(X509Certificate2 cert) {
+                X509Chain chain = new X509Chain();
+                chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+                // temporary just to bypass unknown revocation status error
+                chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllFlags;
+                try
+                {
+                    var chainBuilt = chain.Build(cert);
+                    Console.WriteLine(string.Format("Chain building status: {0}", chainBuilt));
+
+                    if (chainBuilt == false)
+                        foreach (X509ChainStatus chainStatus in chain.ChainStatus)
+                            Console.WriteLine(string.Format("Chain error: {0} {1}", chainStatus.Status, chainStatus.StatusInformation));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
         }
     }
 }
