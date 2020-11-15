@@ -25,6 +25,9 @@ using System.Text.RegularExpressions;
 using Org.BouncyCastle.OpenSsl;
 using X509Extension = System.Security.Cryptography.X509Certificates.X509Extension;
 using Org.BouncyCastle.X509.Extension;
+using System.Text;
+using CAcore.Helpers;
+using Org.BouncyCastle.Security;
 
 namespace CAcore.Data
 {
@@ -34,12 +37,18 @@ namespace CAcore.Data
         private static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
 
         private IConfiguration _configuration;
+
+        private readonly UserHelper _userHelper;
+
         public MySqlCAcoreRepo(CAcoreContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;
+            _userHelper= new UserHelper();
+
             
         }
+
         public IEnumerable<User> GetAllUsers()
         {   
             return _context.Users.ToList();
@@ -47,6 +56,11 @@ namespace CAcore.Data
         public User GetUserByUserId(string UserId)
         {   
             return _context.Users.FirstOrDefault(user => user.UserId == UserId);
+        }
+
+        public User GetUserByEmail(string Email)
+        {   
+            return _context.Users.FirstOrDefault(user => user.Email == Email);
         }
 
         public void CreateUser(User usr)
@@ -62,9 +76,14 @@ namespace CAcore.Data
             _context.Users.Add(usr);
         }
 
-        public void UpdateUser(User usr)
+        public void UpdateUser(User usr, string newPassword = "")
         {
-            // nothing
+            if (!String.IsNullOrEmpty(newPassword)) 
+            {
+                usr.Password = _userHelper.GetHashedPassword(newPassword);
+            }
+
+            _context.Users.Update(usr);
         }
 
         public void DeleteUser(User usr)

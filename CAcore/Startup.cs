@@ -19,6 +19,9 @@ using AutoMapper;
 using System.IO;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 namespace CAcore
 {
@@ -41,14 +44,21 @@ namespace CAcore
             
 
             services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
+
+            
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => {options.SlidingExpiration = true;options.ExpireTimeSpan = new TimeSpan(0, 1, 0);});
+
             services.AddControllers();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
+        
             services.AddScoped<ICAcoreRepo, MySqlCAcoreRepo>();
             services.AddSingleton<IConfiguration>(Configuration);
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
 
+            services.AddCors();
+            services.AddMvc(option => option.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,10 +69,21 @@ namespace CAcore
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(builder => builder
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetIsOriginAllowed((host) => true)
+                .AllowCredentials()
+            );  
+
+            app.UseMvc();
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseAuthentication();
+            
             app.UseAuthorization();
 
             //  Windows-specific, just for testing CRL, probably needs to be served on the web server
