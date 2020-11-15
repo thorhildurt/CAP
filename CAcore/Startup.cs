@@ -39,10 +39,7 @@ namespace CAcore
 
             services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
 
-            services.AddIdentity<IdentityUser, IdentityRole>()
-                .AddEntityFrameworkStores<CAcoreContext>()
-                .AddDefaultTokenProviders();
-
+            
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => {options.SlidingExpiration = true;options.ExpireTimeSpan = new TimeSpan(0, 1, 0);});
 
