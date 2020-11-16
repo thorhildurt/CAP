@@ -116,8 +116,9 @@ namespace CAcore.Data
                 }
 
                 ECDsa userECDsa = ECDsa.Create();
-                // initializing certificate request 
-                CertificateRequest req = new CertificateRequest($"CN={user.FirstName} {user.LastName}, E={user.Email}", userECDsa, HashAlgorithmName.SHA256); 
+                // initializing certificate request
+                string uidOID = "OID.0.9.2342.19200300.100.1.1"; 
+                CertificateRequest req = new CertificateRequest($"CN={user.FirstName} {user.LastName}, E={user.Email}, {uidOID}={user.UserId}", userECDsa, HashAlgorithmName.SHA256); 
                 req.CertificateExtensions.Add(
                 new X509BasicConstraintsExtension(false, false, 0, false));
 
@@ -158,7 +159,6 @@ namespace CAcore.Data
                 X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
                 cert = cert.CopyWithPrivateKey(userECDsa);
                 _verify_certificate(cert);
-                
                 
                 UserCertificate newCert =  new UserCertificate {
                     UserId = uid,
