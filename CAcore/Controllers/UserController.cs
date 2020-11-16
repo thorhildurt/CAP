@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using Serilog;
 
 namespace CAcore.Controllers
 {
@@ -26,8 +27,6 @@ namespace CAcore.Controllers
         private readonly IMapper _mapper;
         private readonly UserHelper _userHelper;
 
-        private const String claimNameType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
-
         public UserController(ICAcoreRepo repository, IMapper mapper)
         {
             _repository = repository;
@@ -38,8 +37,10 @@ namespace CAcore.Controllers
         [HttpGet(Name="GetLoggedInUser")]
         public ActionResult <UserReadDto> GetLoggedInUser()
         {
-            // Get the id of the logged in user, the id is located in claim identity in the authenticatiton cookie
-            var userId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == claimNameType)?.Value;
+            // Get the id of the logged in user. The id is located in claim identity in the authenticatiton cookie
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+
             var user = _repository.GetUserByUserId(userId);
             if(user != null)
             {
@@ -53,9 +54,7 @@ namespace CAcore.Controllers
         [HttpPut(Name="UpdateLoggedInUser")]
         public ActionResult <UserReadDto> UpdateLoggedInUser(UserUpdateDto userUpdateDto)
         {
-            // Get the id of the logged in user, the id is located in claim identity in the authenticatiton cookie
-            //var userId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == claimNameType)?.Value;
-
+            // Get the id of the logged in user. The id is located in claim identity in the authenticatiton cookie
             ClaimsPrincipal currentUser = this.User;
             var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
             userUpdateDto.UserId = userId;
@@ -74,8 +73,10 @@ namespace CAcore.Controllers
                 // TODO: Maybe refactor once login is implemented
                 if (PasswordHash != userModel.Password)
                 {
+                    Log.Information(string.Format("Update passsword - Invalid old password: {0}", userId));
                     return Unauthorized();
                 }
+                Log.Information(string.Format("Update passsword - password updated: {0}", userId));
             }
             else
             {
@@ -83,7 +84,6 @@ namespace CAcore.Controllers
                 userUpdateDto.Password = userModel.Password;
             }
 
-            //_mapper.Map(userUpdateDto, userModel);
             userModel.FirstName = !String.IsNullOrEmpty(userUpdateDto.FirstName) ? userUpdateDto.FirstName : userModel.FirstName;
             userModel.LastName = !String.IsNullOrEmpty(userUpdateDto.LastName) ? userUpdateDto.LastName: userModel.LastName;
             _repository.UpdateUser(userModel, userUpdateDto.NewPassword);
