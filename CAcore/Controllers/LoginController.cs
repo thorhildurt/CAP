@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Identity;
 using CAcore.Helpers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using System;
+using Serilog;
 
 namespace CAcore.Controllers
 {
@@ -32,6 +34,7 @@ namespace CAcore.Controllers
         {
             if (!ModelState.IsValid || credDto == null)
             {
+                Log.Information("User login - Invalid model");
                 return new BadRequestObjectResult(new { Message = "Login failed", IsLogin = false});
             }
 
@@ -39,6 +42,7 @@ namespace CAcore.Controllers
 
             if (dbUser == null)
             {
+                Log.Information(string.Format("User login - Invalid username: {0}", credDto.UserId));
                 return Unauthorized(new { Message = "Invalid username or password", IsLogin = false });	            
             }
 
@@ -46,6 +50,7 @@ namespace CAcore.Controllers
             
             if (hashedPasword != dbUser.Password)
             {
+                Log.Information(string.Format("User login - Invalid password: {0}", dbUser.UserId));
                 return Unauthorized(new { Message = "Invalid username or password", IsLogin = false });
             }
 

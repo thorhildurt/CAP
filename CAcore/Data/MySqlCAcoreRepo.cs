@@ -27,6 +27,7 @@ using X509Extension = System.Security.Cryptography.X509Certificates.X509Extensio
 using Org.BouncyCastle.X509.Extension;
 using CAcore.Helpers;
 using System.Text;
+using Serilog;
 
 namespace CAcore.Data
 {
@@ -161,6 +162,7 @@ namespace CAcore.Data
                 rng.GetBytes(serialNumber);
                 X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
                 cert = cert.CopyWithPrivateKey(userECDsa);
+                Log.Information("Veriyfing newly issue cert...");
                 _verify_certificate(cert);
                 
                 
@@ -232,6 +234,7 @@ namespace CAcore.Data
         {
             UserCertificate cert =  _context.UserCertificates.FirstOrDefault(cert => cert.CertId == cid && cert.UserId == uid);
             X509Certificate2 xCert = new X509Certificate2(cert.RawCertBody);
+            Log.Information("Verifying obtained cert...");
             _verify_certificate(xCert);
             return cert; 
         }
@@ -262,21 +265,14 @@ namespace CAcore.Data
                 store.Open(OpenFlags.OpenExistingOnly);
                 X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
                 X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, _configuration["CertThumbprint"], false);
-                foreach(X509Certificate2 c in collection) {
-                    if(c.IssuerName.Name.Contains("Zurich")) {
-                    Console.WriteLine(c.IssuerName.Name);
-                    Console.WriteLine(c.Thumbprint);
-
-                    }
-                }
                 if(fcollection.Count == 0) {
-                    Console.WriteLine("No cert found");
+                    Log.Fatal("No root certificate found.");
                     return null; 
                 }
 
                 X509Certificate2 rootCert = fcollection[0];
 
-                Console.WriteLine("Root cert verify " + rootCert.Verify());
+                Log.Information("Root cert verify " + rootCert.Verify());
                 _verify_certificate(rootCert);
 
                 return rootCert; 
@@ -290,15 +286,15 @@ namespace CAcore.Data
                 try
                 {
                     var chainBuilt = chain.Build(cert);
-                    Console.WriteLine(string.Format("Chain building status: {0}", chainBuilt));
+                    Log.Information(string.Format("Chain building status: {0}", chainBuilt));
 
                     if (chainBuilt == false)
                         foreach (X509ChainStatus chainStatus in chain.ChainStatus)
-                            Console.WriteLine(string.Format("Chain error: {0} {1}", chainStatus.Status, chainStatus.StatusInformation));
+                            Log.Fatal(string.Format("Chain error: {0} {1}", chainStatus.Status, chainStatus.StatusInformation));
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.ToString());
+                    Log.Fatal(ex.ToString());
                 }
         }
     }
