@@ -42,7 +42,6 @@ namespace CAcore
                 {
                     webBuilder.UseStartup<Startup>();
                     webBuilder.UseStaticWebAssets();
-                    
                 });
     }
 }
