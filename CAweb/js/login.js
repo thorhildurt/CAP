@@ -47,7 +47,7 @@ function login(url = '', data = {}) {
   function _errorPopup(error) {
 
     var messageDiv = document.getElementById('login-error-message');
-    messageDiv.innerHTML = `A problem has been occurred while login`;
+    messageDiv.innerHTML = `A problem has occurred during login`;
 
     var errorMessageDiv = document.getElementById('login-error-alert');
     errorMessageDiv.classList.add("show");

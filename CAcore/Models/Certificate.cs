@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CAcore.Models 
 {
-    
     public class UserCertificate 
     {
         [Key]

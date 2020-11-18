@@ -34,18 +34,14 @@ namespace CAcore
 
         public IConfiguration Configuration { get; }
 
-        
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             // Set DbConnectionString in user secrets
             var dbConnectionString = Configuration["DbConnectionString"];
-            
 
             services.AddDbContext<CAcoreContext>(options => options.UseMySql(dbConnectionString));
 
-            
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => {options.SlidingExpiration = true;options.ExpireTimeSpan = new TimeSpan(0, 1, 0);});
 
@@ -85,12 +81,6 @@ namespace CAcore
             app.UseAuthentication();
             
             app.UseAuthorization();
-
-            //  Windows-specific, just for testing CRL, probably needs to be served on the web server
-            app.UseStaticFiles(new StaticFileOptions() {
-            FileProvider =  new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Content")),
-            RequestPath = new PathString("")
-            });
 
             app.UseEndpoints(endpoints =>
             {
