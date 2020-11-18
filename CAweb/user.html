@@ -55,7 +55,7 @@
                                             <h6 id="user-email" class="text-muted"></h6>
                                         </div>
                                         <div>
-                                            <button type="submit" class="btn btn-primary">Create New Certificate</button>
+                                            <button type="submit" class="btn btn-primary" id="create-certificate">Create New Certificate</button>
                                         </div>
                                     </div>
                                 </div>
@@ -68,10 +68,10 @@
                             </div>
                             <div class="panel-body">
                                 <!-- todo add results frrom crl request here -->
-                                <ul class="list-group">
-                                    <li class="list-group-item list-group-item-success">Certificate A <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li>
+                                <ul class="list-group" id="certificate-list">
+                                    <!-- <li class="list-group-item list-group-item-success">Certificate A <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li>
                                     <li class="list-group-item list-group-item-success">Certificate B <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li>
-                                    <li class="list-group-item list-group-item-success">Certificate C <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li>
+                                    <li class="list-group-item list-group-item-success">Certificate C <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li> -->
                                 </ul>
                             </div>
                         </div>
@@ -82,9 +82,7 @@
                             </div>
                             <div class="panel-body">
                                 <!-- todo add results frrom crl request here -->
-                                <ul class="list-group">
-                                    <li class="list-group-item list-group-item-danger">Certificate D</li>
-                                    <li class="list-group-item list-group-item-danger">Certificate E</li>
+                                <ul class="list-group" id="revoked-certificate-list">
                                 </ul>
                             </div>
                         </div>

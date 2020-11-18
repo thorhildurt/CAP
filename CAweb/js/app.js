@@ -2,6 +2,7 @@
 const baseUri = 'https://localhost:5001/';
 const getUserUri = baseUri + 'user/';
 const logoutUri = baseUri + 'auth/logout';
+const certUri = getUserUri + 'certificates'; 
 
 /* get dom objects */
 const userDiv = document.getElementById('users');
@@ -54,6 +55,68 @@ function append(parent, element) {
   return parent.appendChild(element);
 }
 
+function getUserCertificates(onlyRevoked=false) {
+  fetch(certUri, {
+    method: 'GET', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'include', // include, *same-origin, omit (browser does not include credentials in the query)
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+  })
+  .then(response => response.json())
+  .then(data => _displayUserCertificates(data, onlyRevoked))
+  .catch(error => console.error('Unable to load certificates', error));
+}
+
+function _displayUserCertificates(data, onlyRevoked) {
+  if(!onlyRevoked) {
+    $("#certificate-list").empty();
+  } else {
+    $("#revoked-certificate-list").empty();
+  }
+
+  if(data.length != 0) {
+    data.forEach(cert => {
+      var certEl = createNode('li');
+      certEl.append(cert['certId']);
+      
+      if(!onlyRevoked && cert['revoked'] == false) {
+
+        certEl.classList.add('list-group-item', 'list-group-item-success');
+        var revokeBtn = createNode('button');
+        revokeBtn.append('Revoke');
+        revokeBtn.type = 'submit';
+        revokeBtn.classList.add('btn', 'btn-danger', 'btn-sm-custom');
+        certEl.append(revokeBtn);
+        $("#certificate-list").append(certEl);
+      } else if(onlyRevoked && cert['revoked'] == true) {
+
+        certEl.classList.add('list-group-item', 'list-group-item-danger');
+        $("#revoked-certificate-list").append(certEl);
+      }
+    });
+
+  } else {
+    if(!onlyRevoked) {
+      $("#certificate-list").append('No active certificates');
+    } else {
+      $("#revoked-certificate-list").append('No revoked certificates');
+    }
+  }
+}
+
+$("#certificate-list").ready(function() {
+  getUserCertificates();
+});
+
+$("#revoked-certificate-list").ready(function() {
+  getUserCertificates(true);
+});
+
 $(document).ready(function(){
   $("#submit-user-info").click(function(event){
       event.preventDefault();
@@ -81,9 +144,7 @@ $(document).ready(function(){
       })
       .catch(error => console.error('Unable to change user info', error));
   });
-});
 
-$(document).ready(function(){
   $("#submit-password-change").click(function(event){
       event.preventDefault();
       var body = {
@@ -105,11 +166,33 @@ $(document).ready(function(){
       })
       .then(response => {
         response.json();
-        location.reload();
-        scrollTo(0, 0);
+        //location.reload();
+        //scrollTo(0, 0);
       })
       .catch(error => console.error('Unable to change password', error));
   });
+
+  $("#create-certificate").click(function(event){
+    event.preventDefault();
+
+    fetch(certUri, {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      mode: 'cors', // no-cors, *cors, same-origin
+      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'include', // include, *same-origin, omit (browser does not include credentials in the query)
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      redirect: 'follow', // manual, *follow, error
+      referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    })
+    .then(response => {
+      response.json();
+      getUserCertificates();
+    })
+    .catch(error => console.error('Unable to change password', error));
+  });
+
 });
 
 /* Logout functions */
