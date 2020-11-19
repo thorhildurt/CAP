@@ -210,7 +210,7 @@ namespace CAcore.Data
 
             var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
             X509Crl nextCrl = crlGenerator.Generate(sigFactory);
-            writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
+            //writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
             writePem(_configuration["CrlPath"], nextCrl); //write new CRL
             
             // sanity check

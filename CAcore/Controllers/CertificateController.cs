@@ -7,6 +7,7 @@ using CAcore.Data;
 using CAcore.Dtos;
 using CAcore.Models;
 using Microsoft.AspNetCore.Mvc;
+using CAcore.Helpers;
 
 namespace CAcore.Controllers {
     [Route("/users/{uid}/certificates")]
@@ -15,10 +16,12 @@ namespace CAcore.Controllers {
     public class CertificateController: ControllerBase {
         private readonly ICAcoreRepo _repository; 
         private readonly IMapper _mapper; 
+        private readonly FileHelper _fileHelper;
         public CertificateController(ICAcoreRepo repo, IMapper mapper) 
         {
             _repository = repo; 
             _mapper = mapper; 
+            _fileHelper = new FileHelper();
         }
 
         [HttpGet]
@@ -29,7 +32,7 @@ namespace CAcore.Controllers {
         }
 
         [HttpPost]
-        public ActionResult<UserCertificateReadDto> CreateCertificate(string uid) 
+        public ActionResult<UserCertificateReadDto> CreateAndDownloadCertificate(string uid) 
         {
             UserCertificate cert = _repository.CreateUserCertificate(uid);
             if (cert == null) 
@@ -39,7 +42,10 @@ namespace CAcore.Controllers {
             
             if(_repository.SaveChanges()) 
             {
+
+                var file = _fileHelper.CreateAndWriteToFile(cert);
                 UserCertificateReadDto readDto = _mapper.Map<UserCertificateReadDto>(cert); 
+                // Return a file
                 return CreatedAtRoute(nameof(GetUserCertificate), new {uid = uid, cid = cert.CertId}, readDto);
             }
 
