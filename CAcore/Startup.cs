@@ -16,6 +16,9 @@ using MySql.Data.EntityFrameworkCore.Extensions;
 using Pomelo.EntityFrameworkCore.MySql;
 using MySqlConnector;
 using AutoMapper;
+using System.IO;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -46,7 +49,7 @@ namespace CAcore
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         
             services.AddScoped<ICAcoreRepo, MySqlCAcoreRepo>();
-
+            services.AddSingleton<IConfiguration>(Configuration);
             // Uncomment to test using hardcoded mock data in MockCAcoreRepo
             // services.AddScoped<ICAcoreRepo, MockCAcoreRepo>();
 

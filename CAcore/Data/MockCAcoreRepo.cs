@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using CAcore.Models;
 
 namespace CAcore.Data
@@ -42,6 +45,26 @@ namespace CAcore.Data
         public User GetUserByEmail(string UserId)
         {
             return new User { UserId="1", FirstName="John", LastName="Johnsson", Email="jj@imovie.com", Password="pw" };
+        }
+
+        public UserCertificate CreateUserCertificate(string uid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RevokeUserCertificate(string uid, string cid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<UserCertificate> GetAllUserCertificates(string uid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public UserCertificate GetUserCertificate(string uid, string cid)
+        {
+            throw new NotImplementedException();
         }
     }
 }
