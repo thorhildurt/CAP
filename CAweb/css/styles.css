@@ -99,4 +99,5 @@ footer {
   right: 10px; 
   width: 25%;
   z-index:9999;
+  display: none;
 }

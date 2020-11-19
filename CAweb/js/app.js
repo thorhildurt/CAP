@@ -49,6 +49,7 @@ function getUserCertificates(onlyRevoked=false) {
 
 function _displayError(message) {
   $("#error-alert")
+    .empty()
     .append(message)
     .fadeTo(2000, 500)
     .delay(3000)
@@ -57,6 +58,7 @@ function _displayError(message) {
 
 function _displaySuccess(message) {
   $("#success-alert")
+    .empty()
     .append(message)
     .fadeTo(2000, 500)
     .delay(3000)
