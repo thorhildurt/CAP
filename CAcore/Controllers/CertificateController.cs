@@ -29,7 +29,7 @@ namespace CAcore.Controllers {
         public ActionResult<IEnumerable<UserCertificateReadDto>> GetAllUserCertificates() {
             ClaimsPrincipal currentUser = this.User;
             var uid = currentUser.FindFirst(ClaimTypes.Name).Value;
-            
+
             var certs = _repository.GetAllUserCertificates(uid);
             return Ok(_mapper.Map<IEnumerable<UserCertificateReadDto>>(certs));
         }
@@ -42,16 +42,16 @@ namespace CAcore.Controllers {
             UserCertificate cert = _repository.CreateUserCertificate(uid);
             if (cert == null) 
             {
-                return BadRequest("Failed to create user certificate. Check that user exists and that the root certificate is in the cert store.");
+                return BadRequest(new { message = "Error! Failed to create user certificate. Check that user exists and that the root certificate is in the cert store.", success = false });
             }
             
             if(_repository.SaveChanges()) 
             {
                 UserCertificateReadDto readDto = _mapper.Map<UserCertificateReadDto>(cert); 
-                return CreatedAtRoute(nameof(GetUserCertificate), new {uid = uid, cid = cert.CertId}, readDto);
+                return Ok(new {message = "Success! Certificate created", success = true});
             }
 
-            return BadRequest("Failed to save certificate to database");
+            return BadRequest(new { message = "Error! Failed to save certificate to database", success = false });
         }
 
         [HttpGet("{cid}", Name = "GetUserCertificate")]
@@ -74,9 +74,9 @@ namespace CAcore.Controllers {
 
             _repository.RevokeUserCertificate(uid, cid);
             if(_repository.SaveChanges()) {
-                return Ok("Certificate successfully revoked");
+                return Ok(new { message = "Success! Certificate revoked", success = true });
             }
-            return BadRequest("Failed to revoke certificate");
+            return BadRequest(new { message = "Error! Failed to revoke certificate", success = false });
         }
     }
 }
