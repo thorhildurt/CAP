@@ -72,7 +72,7 @@ namespace CAcore.Controllers {
             ClaimsPrincipal currentUser = this.User;
             var uid = currentUser.FindFirst(ClaimTypes.Name).Value;
 
-            ar cert = _repository.GetUserCertificate(uid, cid);
+            var cert = _repository.GetUserCertificate(uid, cid);
             if (cert == null) 
             {
                 return BadRequest(new { message = "Error! Certificate does not exist", success = false });
