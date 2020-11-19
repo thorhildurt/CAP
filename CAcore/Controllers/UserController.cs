@@ -74,7 +74,7 @@ namespace CAcore.Controllers
                 if (PasswordHash != userModel.Password)
                 {
                     Log.Information(string.Format("Update passsword - Invalid old password: {0}", userId));
-                    return Unauthorized();
+                    return Unauthorized(new { message = "Error! Incorrect old password", success = false });
                 }
                 Log.Information(string.Format("Update passsword - password updated: {0}", userId));
             }
@@ -87,11 +87,11 @@ namespace CAcore.Controllers
             userModel.FirstName = !String.IsNullOrEmpty(userUpdateDto.FirstName) ? userUpdateDto.FirstName : userModel.FirstName;
             userModel.LastName = !String.IsNullOrEmpty(userUpdateDto.LastName) ? userUpdateDto.LastName: userModel.LastName;
             _repository.UpdateUser(userModel, userUpdateDto.NewPassword);
-            _repository.SaveChanges();
-
-            // TODO: remove/change when we have decided our url
-            Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080");
-            return NoContent();
+            
+            if(_repository.SaveChanges()) {
+                return Ok(new { message = "Success! User data updated", success = true });
+            }
+            return BadRequest(new { message = "Error! Failed to update user data", success = false });
         }
     }
 }
