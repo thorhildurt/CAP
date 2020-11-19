@@ -155,15 +155,35 @@ namespace CAcore.Data
                 )
             );
 
+            // get the latest serial number
+            var certs = GetAllCertificates();
+            var latestCertificate = certs.OrderBy(x => x.CertId).LastOrDefault();
+            var currSerialNumber = String.Empty;
+            if (latestCertificate == null)
+            {
+                currSerialNumber = "0";
+            }
+            else
+            {
+                currSerialNumber = latestCertificate.CertId;
+            }
+            // increment the latest serial number and used it for the new certificate
+            int number = Int32.Parse(currSerialNumber);
+            number = number + 1;
+            byte [] intBytes = BitConverter.GetBytes(number);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(intBytes);
+            }
+            byte [] serialNumber = intBytes;
+            
             // creating certificate signed with the root certificate
-            byte [] serialNumber = new byte[20];
-            rng.GetBytes(serialNumber);
             X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
             cert = cert.CopyWithPrivateKey(userECDsa);
             Log.Information("Veriyfing newly issue cert...");
             _verify_certificate(cert);
             
-            UserCertificate newCert =  new UserCertificate 
+            UserCertificate newCert = new UserCertificate 
             {
                 UserId = uid,
                 CertId = cert.SerialNumber.ToString(), 
@@ -210,7 +230,7 @@ namespace CAcore.Data
 
             var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
             X509Crl nextCrl = crlGenerator.Generate(sigFactory);
-            writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
+            //writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
             writePem(_configuration["CrlPath"], nextCrl); //write new CRL
             
             // sanity check
@@ -223,6 +243,11 @@ namespace CAcore.Data
         public IEnumerable<UserCertificate> GetAllUserCertificates(string uid)
         {
             return _context.UserCertificates.Where(cert => cert.UserId == uid);
+        }
+
+        public IEnumerable<UserCertificate> GetAllCertificates()
+        {
+            return _context.UserCertificates.ToList();
         }
 
         public UserCertificate GetUserCertificate(string uid, string cid)

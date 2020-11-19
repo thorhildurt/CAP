@@ -16,7 +16,8 @@ namespace CAcore.Controllers {
     [Route("/user/certificates")]
     [ApiController]
 
-    public class CertificateController: ControllerBase {
+    public class CertificateController: ControllerBase 
+    {
         private readonly ICAcoreRepo _repository; 
         private readonly IMapper _mapper; 
         public CertificateController(ICAcoreRepo repo, IMapper mapper) 
