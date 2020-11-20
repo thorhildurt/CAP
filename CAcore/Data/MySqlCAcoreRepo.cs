@@ -178,14 +178,12 @@ namespace CAcore.Data
             Log.Information("Veriyfing newly issue cert...");
             _verify_certificate(cert);
 
-            String passphrase = uid;
-
             UserCertificate newCert = new UserCertificate 
             {
                 UserId = uid,
                 CertId = cert.SerialNumber, 
                 SerialInDecimal = number,
-                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, passphrase),
+                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, (string)null),
                 RawCertBody = cert.RawData,
                 PrivateKey = cert.GetECDsaPrivateKey().ExportECPrivateKey()
             };
