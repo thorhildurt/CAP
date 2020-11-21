@@ -7,6 +7,7 @@ using CAcore.Data;
 using CAcore.Dtos;
 using CAcore.Models;
 using Microsoft.AspNetCore.Mvc;
+using CAcore.Helpers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,7 @@ namespace CAcore.Controllers {
     {
         private readonly ICAcoreRepo _repository; 
         private readonly IMapper _mapper; 
+
         public CertificateController(ICAcoreRepo repo, IMapper mapper) 
         {
             _repository = repo; 
@@ -49,10 +51,25 @@ namespace CAcore.Controllers {
             if(_repository.SaveChanges()) 
             {
                 UserCertificateReadDto readDto = _mapper.Map<UserCertificateReadDto>(cert); 
-                return Ok(new {message = "Success! Certificate created", success = true});
+                return Ok(new {message = "Success! Certificate created", success = true, cid = cert.CertId});
             }
 
             return BadRequest(new { message = "Error! Failed to save certificate to database", success = false });
+        }
+
+        [HttpGet("download/{cid}")]
+        public ActionResult<UserCertificateReadDto> DownloadCertificate(string cid) 
+        {
+            ClaimsPrincipal currentUser = this.User;
+            var uid = currentUser.FindFirst(ClaimTypes.Name).Value;
+            
+            var cert = _repository.GetUserCertificate(uid, cid);
+            if (cert != null) 
+            {
+                var fileName = String.Format("{0}.pfx", cert.CertId);
+                return File(cert.CertBodyPkcs12, "APPLICATION/binary",fileName);
+            }
+            return BadRequest(new { message = "Error! Failed download certificate" });
         }
 
         [HttpGet("{cid}", Name = "GetUserCertificate")]

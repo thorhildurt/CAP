@@ -30,7 +30,7 @@ namespace CAcore.Controllers {
             // Manually map the results to the dto
             status.NumberOfIssuedCertificates = certs.Count().ToString();
             status.NumberOfRevokedCertificates = certs.Count() > 0 ? certs.Count(x => x.Revoked).ToString() : "0";
-            status.CurrentSerialNumber = certs.Count() > 0 ? certs.OrderBy(x => x.CertId).LastOrDefault().CertId : "0";
+            status.CurrentSerialNumber = certs.Count() > 0 ? certs.OrderBy(x => x.SerialInDecimal).LastOrDefault().CertId : "0";
             return Ok(status);
         }
     }

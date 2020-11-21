@@ -3,6 +3,7 @@ const baseUri = 'https://localhost:5001/';
 const userUri = baseUri + 'user/';
 const logoutUri = baseUri + 'auth/logout';
 const certUri = userUri + 'certificates/'; 
+const downloadUri = certUri + 'download/';
 
 /* User functions */
 function getUser() {
@@ -103,6 +104,30 @@ function _displayUserCertificates(data, onlyRevoked) {
   }
 }
 
+function download(cid) {
+  fetch(downloadUri + cid,
+  {
+    method: 'GET',
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'include', // include, *same-origin, omit (browser does not include credentials in the query)
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer'
+  }).then(resp => resp.blob())
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    // The filename
+    a.download = cid + '.pfx';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    console.log('pfx file downloaded');
+  }).catch(error => console.log(error));
+}
+
 $("#certificate-list").ready(function() {
   getUserCertificates();
 });
@@ -124,7 +149,7 @@ $(document).ready(function(){
         cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
         credentials: 'include', // include, *same-origin, omit (browser does not include credentials in the query)
         redirect: 'follow', // manual, *follow, error
-        referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        referrerPolicy: 'no-referrer' // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
       })
       .then(response => response.json())
       .then(data => {
@@ -234,6 +259,9 @@ $(document).ready(function(){
       console.log(data);
       if(data.success) {
         getUserCertificates();
+        // download .pks certificate
+        console.log('Downloading ' + data.cid);
+        download(data.cid);
         _displaySuccess(data.message);
       } else {
         _displayError(data.message);

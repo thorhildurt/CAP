@@ -157,19 +157,14 @@ namespace CAcore.Data
 
             // get the latest serial number
             var certs = GetAllCertificates();
-            var latestCertificate = certs.OrderBy(x => x.CertId).LastOrDefault();
-            var currSerialNumber = String.Empty;
-            if (latestCertificate == null)
+            var latestCertificate = certs.OrderBy(x => x.SerialInDecimal).LastOrDefault();
+            var currSerialNumber = 0;
+            if (latestCertificate != null)
             {
-                currSerialNumber = "0";
-            }
-            else
-            {
-                currSerialNumber = latestCertificate.CertId;
+                currSerialNumber = latestCertificate.SerialInDecimal;
             }
             // increment the latest serial number and used it for the new certificate
-            int number = Int32.Parse(currSerialNumber);
-            number = number + 1;
+            int number = currSerialNumber + 1;
             byte [] intBytes = BitConverter.GetBytes(number);
             if (BitConverter.IsLittleEndian)
             {
@@ -182,12 +177,13 @@ namespace CAcore.Data
             cert = cert.CopyWithPrivateKey(userECDsa);
             Log.Information("Veriyfing newly issue cert...");
             _verify_certificate(cert);
-            
+
             UserCertificate newCert = new UserCertificate 
             {
                 UserId = uid,
-                CertId = cert.SerialNumber.ToString(), 
-                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12),
+                CertId = cert.SerialNumber, 
+                SerialInDecimal = number,
+                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, (string)null),
                 RawCertBody = cert.RawData,
                 PrivateKey = cert.GetECDsaPrivateKey().ExportECPrivateKey()
             };
