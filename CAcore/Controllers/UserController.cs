@@ -45,7 +45,7 @@ namespace CAcore.Controllers
             if(user != null)
             {
                 // TODO: remove/change when we have decided our url
-                Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080/");
+                Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:3001/");
                 return Ok(_mapper.Map<UserReadDto>(user));
             }
             return NotFound();
@@ -90,7 +90,7 @@ namespace CAcore.Controllers
             _repository.SaveChanges();
 
             // TODO: remove/change when we have decided our url
-            Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080");
+            Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:3001");
             return NoContent();
         }
     }

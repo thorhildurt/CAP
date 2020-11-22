@@ -67,7 +67,7 @@ namespace CAcore.Controllers
 
             // TODO: remove/change when we have decided our url
             // Source: https://dotnetstories.com/blog/How-to-enable-CORS-for-POST-requests-on-a-single-endpoint-in-ASPNET-Core-en-7186478980?lang=en
-            Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080");
+            Response.Headers.Add("Access-Control-Allow-Origin", "https://localhost:3001");
             Response.Headers.Add("Access-Control-Allow-Credentials", "true");
             Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS" );
             Response.Headers.Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
