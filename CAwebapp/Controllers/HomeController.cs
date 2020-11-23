@@ -47,7 +47,15 @@ namespace CAwebapp.Controllers
         [HttpGet]  
         public async Task<IActionResult> Index()
         {
-            string endpoint = "/user";
+            string endpoint = "/user/";
+            ClaimsPrincipal currentUser = this.User;
+            var findFirstUsr = currentUser.FindFirst(ClaimTypes.Name);
+            if (findFirstUsr != null)
+            {
+                var userId = findFirstUsr.Value;
+                endpoint = endpoint + userId;
+            }
+
             using (var Response = await _httpClient.GetAsync(endpoint))  
             {  
                 if (Response.StatusCode == System.Net.HttpStatusCode.OK)  
@@ -203,7 +211,7 @@ namespace CAwebapp.Controllers
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
                                         new ClaimsPrincipal(claimsIdentity));
 
                 TempData["Profile"] = JsonConvert.SerializeObject(user); 
