@@ -71,14 +71,26 @@ namespace CAwebapp.Controllers
                 return RedirectToAction("Login");
             }
 
-            string endpoint = "/user/" + user.UserId;
-            var response = _httpClient.GetAsync(endpoint).Result;
-           // Console.WriteLine(Response.Content.ReadAsStringAsync());
+            string getUserEndpoint = "/user/" + user.UserId;
+            Console.WriteLine("Getting users");
+            var userResponse = _httpClient.GetAsync(getUserEndpoint).Result;
+           
 
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)  
+            // if we can fetch user lets try to fetch certificates
+            if (userResponse.StatusCode == System.Net.HttpStatusCode.OK)  
             {  
-                var responseBody = response.Content.ReadAsStringAsync().Result;
-                ViewBag.User = JsonConvert.DeserializeObject<UserInformation>(responseBody);  
+                var responseBody = userResponse.Content.ReadAsStringAsync().Result;
+                ViewBag.User = JsonConvert.DeserializeObject<UserInformation>(responseBody); 
+
+                Console.WriteLine("Getting user certificates");
+                string getUserCertEndpoint = "/users/" + user.UserId + "/certificates";
+                var certResponse = _httpClient.GetAsync(getUserCertEndpoint).Result;
+
+                var certResponseBody = certResponse.Content.ReadAsStringAsync().Result;
+
+                var certificates = JsonConvert.DeserializeObject<IEnumerable<UserCertificate>>(certResponseBody); 
+                ViewBag.ActiveCerts = certificates.Where(x => !x.Revoked).ToList();
+                ViewBag.RevokedCerts = certificates.Where(x => x.Revoked).ToList();
 
                 return View();
             } 
