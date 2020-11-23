@@ -114,7 +114,12 @@ namespace CAwebapp.Controllers
             var response = _httpClient.PostAsync(endpoint, content).Result;
             if (response.StatusCode == System.Net.HttpStatusCode.OK)  
             {  
-                Console.WriteLine("Certificate created!");
+                var certResponseBody = response.Content.ReadAsStringAsync().Result;
+                var certificates = JsonConvert.DeserializeObject<CreateCertResponse>(certResponseBody); 
+                Console.WriteLine("Certificate created! " + certificates.cid);
+                string downloadEndpoint = "/user/" + userId + "/certificates/download/" + certificates.cid;
+                var fileResponse = _httpClient.GetAsync(downloadEndpoint).Result;
+                Console.WriteLine(fileResponse);
             }
 
             TempData["Profile"] = JsonConvert.SerializeObject(user);
