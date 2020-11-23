@@ -108,9 +108,13 @@ namespace CAwebapp.Controllers
             user.UserId = userId;
             Console.WriteLine(user.FirstName);
             StringContent content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"); 
-            string endpoint = "/auth/login";  
+            string endpoint = "/user";  
+            var response = _httpClient.PutAsync(endpoint, content).Result;
 
-
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)  
+            {  
+                Console.WriteLine("Updating user successfull");
+            }
             TempData["Profile"] = JsonConvert.SerializeObject(user); 
             return RedirectToAction("Profile");
         }
