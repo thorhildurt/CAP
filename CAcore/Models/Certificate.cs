@@ -11,6 +11,10 @@ namespace CAcore.Models
         public string CertId { get; set; }
 
         [Required]
+        [Column("serialInDecimal")]
+        public int SerialInDecimal { get; set; }
+
+        [Required]
         [Column("uid")]
         public string UserId { get; set; }
 

@@ -10,7 +10,10 @@
         <img src="~/content/user.png" alt="" width="100" class="img-fluid rounded-circle mb-3 img-thumbnail shadow-sm">
         <h5 id="user-email" class="text-muted">@ViewBag.User.FirstName @ViewBag.User.LastName</h5>
         <h6 id="user-email" class="text-muted">@ViewBag.User.Email</h6>
-        <button type="submit" class="btn btn-primary" value='cert'>Create New Certificate</button>
+        @using (Html.BeginForm("CreateAndDownloadCert", "Home", FormMethod.Post))
+        {
+            <button type="submit" class="btn btn-primary ">Create New Certificate</button>
+        }
     </div>
 </div>
 <!-- view active certificates -->

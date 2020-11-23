@@ -155,19 +155,35 @@ namespace CAcore.Data
                 )
             );
 
+            // get the latest serial number
+            var certs = GetAllCertificates();
+            var latestCertificate = certs.OrderBy(x => x.SerialInDecimal).LastOrDefault();
+            var currSerialNumber = 0;
+            if (latestCertificate != null)
+            {
+                currSerialNumber = latestCertificate.SerialInDecimal;
+            }
+            // increment the latest serial number and used it for the new certificate
+            int number = currSerialNumber + 1;
+            byte [] intBytes = BitConverter.GetBytes(number);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(intBytes);
+            }
+            byte [] serialNumber = intBytes;
+            
             // creating certificate signed with the root certificate
-            byte [] serialNumber = new byte[20];
-            rng.GetBytes(serialNumber);
             X509Certificate2 cert =  req.Create(rootCert, DateTime.UtcNow, DateTime.UtcNow.AddDays(200), serialNumber); 
             cert = cert.CopyWithPrivateKey(userECDsa);
             Log.Information("Veriyfing newly issue cert...");
             _verify_certificate(cert);
-            
-            UserCertificate newCert =  new UserCertificate 
+
+            UserCertificate newCert = new UserCertificate 
             {
                 UserId = uid,
-                CertId = cert.SerialNumber.ToString(), 
-                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12),
+                CertId = cert.SerialNumber, 
+                SerialInDecimal = number,
+                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, (string)null),
                 RawCertBody = cert.RawData,
                 PrivateKey = cert.GetECDsaPrivateKey().ExportECPrivateKey()
             };
@@ -210,6 +226,7 @@ namespace CAcore.Data
 
             var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
             X509Crl nextCrl = crlGenerator.Generate(sigFactory);
+            
             // writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
             writePem(_configuration["CrlPath"], nextCrl); //write new CRL
             
@@ -223,6 +240,11 @@ namespace CAcore.Data
         public IEnumerable<UserCertificate> GetAllUserCertificates(string uid)
         {
             return _context.UserCertificates.Where(cert => cert.UserId == uid);
+        }
+
+        public IEnumerable<UserCertificate> GetAllCertificates()
+        {
+            return _context.UserCertificates.ToList();
         }
 
         public UserCertificate GetUserCertificate(string uid, string cid)

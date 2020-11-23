@@ -83,7 +83,7 @@ namespace CAwebapp.Controllers
                 ViewBag.User = JsonConvert.DeserializeObject<UserInformation>(responseBody); 
 
                 Console.WriteLine("Getting user certificates");
-                string getUserCertEndpoint = "/users/" + user.UserId + "/certificates";
+                string getUserCertEndpoint = "/user/" + user.UserId + "/certificates";
                 var certResponse = _httpClient.GetAsync(getUserCertEndpoint).Result;
 
                 var certResponseBody = certResponse.Content.ReadAsStringAsync().Result;
@@ -101,12 +101,23 @@ namespace CAwebapp.Controllers
         } 
 
         // Create new certificate
-        [HttpPost]  
         public IActionResult CreateAndDownloadCert()  
         {  
             //ClaimsPrincipal currentUser = this.User;
             //var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            Console.WriteLine("CreateAndDownloadCert");
             var userId = "a3";
+            var user = new UserInformation() {UserId = userId};
+
+            StringContent content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"); 
+            string endpoint = "/user/" + userId + "/certificates"; 
+            var response = _httpClient.PostAsync(endpoint, content).Result;
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)  
+            {  
+                Console.WriteLine("Certificate created!");
+            }
+
+            TempData["Profile"] = JsonConvert.SerializeObject(user);
             return RedirectToAction("Profile");
         }
 
@@ -118,11 +129,11 @@ namespace CAwebapp.Controllers
             var user = new UserInformation() {UserId = userId};
             
             StringContent content = new StringContent("", Encoding.UTF8, "application/json"); 
-            string revokeEndpoint = "/users/" + userId + "/certificates/" + cid + "/revoke"; 
+            string revokeEndpoint = "/user/" + userId + "/certificates/" + cid + "/revoke"; 
             var response = _httpClient.PutAsync(revokeEndpoint, content).Result;
             if (response.StatusCode == System.Net.HttpStatusCode.OK)  
             {  
-                Console.WriteLine("Revoking certificat successfull");
+                Console.WriteLine("Revoking certificate successfull");
             }
             TempData["Profile"] = JsonConvert.SerializeObject(user);
             Console.WriteLine(cid);

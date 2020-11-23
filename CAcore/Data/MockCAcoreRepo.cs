@@ -66,5 +66,10 @@ namespace CAcore.Data
         {
             throw new NotImplementedException();
         }
+
+        public IEnumerable<UserCertificate> GetAllCertificates()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
