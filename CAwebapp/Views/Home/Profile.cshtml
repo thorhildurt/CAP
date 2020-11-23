@@ -8,10 +8,35 @@
 <div class="row text-center">
     <div class="bg-white rounded shadow-sm py-5 px-4">
         <img src="~/content/user.png" alt="" width="100" class="img-fluid rounded-circle mb-3 img-thumbnail shadow-sm">
-        
-        <h6 id="user-email" class="text-muted">Bla</h6>
+        <h5 id="user-email" class="text-muted">@ViewBag.User.FirstName @ViewBag.User.LastName</h5>
+        <h6 id="user-email" class="text-muted">@ViewBag.User.Email</h6>
+        <button type="submit" class="btn btn-primary" value='cert'>Create New Certificate</button>
     </div>
-    <div>
-        <button type="submit" class="btn btn-primary">Create New Certificate</button>
+</div>
+<!-- view active certificates -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">Active Certificates</h4>
+    </div>
+    <div class="panel-body">
+        <!-- todo add results frrom crl request here -->
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-success">Certificate A <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li>
+            <li class="list-group-item list-group-item-success">Certificate B <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li>
+            <li class="list-group-item list-group-item-success">Certificate C <button type="submit" class="btn btn-danger btn-sm-custom ">Revoke</button></li>
+        </ul>
+    </div>
+</div>
+<!-- view crl-->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">Certificate Revocation List</h4>
+    </div>
+    <div class="panel-body">
+        <!-- todo add results frrom crl request here -->
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-danger">Certificate D</li>
+            <li class="list-group-item list-group-item-danger">Certificate E</li>
+        </ul>
     </div>
 </div>

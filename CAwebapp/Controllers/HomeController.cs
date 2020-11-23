@@ -61,25 +61,31 @@ namespace CAwebapp.Controllers
         }
 
         [HttpGet]  
-        public async Task<IActionResult> Profile()  
+        public IActionResult Profile()  
         {  
             Console.WriteLine("profile");
-            UserInformation user = null;
-            var authCookie = HttpContext.Request.Cookies[".AspNetCore.Cookies"];
-            
-            string endpoint = "/user";
-            using (var Response = await _httpClient.GetAsync(endpoint))  
-            {  
-                if (Response.StatusCode == System.Net.HttpStatusCode.OK)  
-                {  
-                    user = JsonConvert.DeserializeObject<UserInformation>(Response.Content.ToString());  
-                    return View(user);
-                } 
+            var user = JsonConvert.DeserializeObject<UserInformation>(Convert.ToString(TempData["Profile"])); 
+        
+            if (user == null)
+            {
+                return RedirectToAction("Login");
             }
-            
-            Console.WriteLine("get user did not work :(");
-            //user = JsonConvert.DeserializeObject<UserInformation>(Convert.ToString(TempData["Profile"]));  
-            return View(user);  
+
+            string endpoint = "/user/" + user.UserId;
+            var response = _httpClient.GetAsync(endpoint).Result;
+           // Console.WriteLine(Response.Content.ReadAsStringAsync());
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)  
+            {  
+                var responseBody = response.Content.ReadAsStringAsync().Result;
+                ViewBag.User = JsonConvert.DeserializeObject<UserInformation>(responseBody);  
+
+                return View();
+            } 
+            else
+            {
+                return RedirectToAction("Login");
+            }
         } 
 
         public IActionResult Login()
@@ -99,14 +105,11 @@ namespace CAwebapp.Controllers
             
             var res = response.Content.ReadAsStringAsync();
 
-            Console.WriteLine(response.Headers);
             var test = HttpContext.Request.Headers;
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)  
             {  
                 TempData["Profile"] = JsonConvert.SerializeObject(user); 
-                var getUser = _httpClient.GetAsync(endpoint).Result;
-                Console.WriteLine(getUser.Headers);
                 return RedirectToAction("Profile");  
             }  
             else  
