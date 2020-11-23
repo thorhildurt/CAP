@@ -88,6 +88,33 @@ namespace CAwebapp.Controllers
             }
         } 
 
+        // Create new certificate
+        [HttpPost]  
+        public IActionResult CreateAndDownloadCert()  
+        {  
+            //ClaimsPrincipal currentUser = this.User;
+            //var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            var userId = "a3";
+            return RedirectToAction("Profile");
+        }
+
+        // Update user information
+        [HttpPost]  
+        public IActionResult Profile(UserUpdate user)  
+        {  
+            //ClaimsPrincipal currentUser = this.User;
+            //var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            var userId = "a3";
+            user.UserId = userId;
+            Console.WriteLine(user.FirstName);
+            StringContent content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"); 
+            string endpoint = "/auth/login";  
+
+
+            TempData["Profile"] = JsonConvert.SerializeObject(user); 
+            return RedirectToAction("Profile");
+        }
+
         public IActionResult Login()
         {
             return View();

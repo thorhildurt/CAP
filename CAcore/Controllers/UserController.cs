@@ -55,9 +55,9 @@ namespace CAcore.Controllers
         public ActionResult <UserReadDto> UpdateLoggedInUser(UserUpdateDto userUpdateDto)
         {
             // Get the id of the logged in user. The id is located in claim identity in the authenticatiton cookie
-            ClaimsPrincipal currentUser = this.User;
-            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
-            userUpdateDto.UserId = userId;
+            // ClaimsPrincipal currentUser = this.User;
+            // var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            var userId = userUpdateDto.UserId;
 
             var userModel = _repository.GetUserByUserId(userId);
       

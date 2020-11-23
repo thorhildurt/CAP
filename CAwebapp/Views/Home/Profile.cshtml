@@ -1,4 +1,4 @@
-@model CAwebapp.Models.UserInformation
+@model CAwebapp.Models.UserUpdate
 
 @{
     ViewBag.Title = "Profile";
@@ -39,4 +39,34 @@
             <li class="list-group-item list-group-item-danger">Certificate E</li>
         </ul>
     </div>
+</div>
+
+<div class="card-header">
+    Update User Information
+</div>
+<div class="card-body">
+    @using (Html.BeginForm("Profile", "Home", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            @Html.LabelFor(m => m.FirstName)
+            @Html.TextBoxFor(m => m.FirstName, "", new { @class = "form-control", @placeholder = "First name" })
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.LastName)
+            @Html.TextBoxFor(m => m.LastName, "", new { @class = "form-control", @placeholder = "Last name" })
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.Password)
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control", @placeholder = "Password" })
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.NewPassword)
+            @Html.PasswordFor(m => m.NewPassword, new { @class = "form-control", @placeholder = "NewPassword" })
+        </div>
+        <div class="form-group">
+            <input type="submit" name="submit" class="btn btn-primary" value="UpdateUser"/>
+        </div>
+    }
+</div>
 </div>
