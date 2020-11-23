@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CAwebapp
 {
@@ -23,6 +24,11 @@ namespace CAwebapp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => {
+                    options.LoginPath = "/Home/Login"; // Redirect to this path if not authenticated
+                    options.SlidingExpiration = true;
+                    options.ExpireTimeSpan = new TimeSpan(0, 1, 0);});
             services.AddControllersWithViews();
         }
 
@@ -43,7 +49,7 @@ namespace CAwebapp
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

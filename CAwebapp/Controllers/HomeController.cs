@@ -12,6 +12,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Net;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CAwebapp.Controllers
 {
@@ -60,10 +64,14 @@ namespace CAwebapp.Controllers
             }  
         }
 
+        [Authorize]
         [HttpGet]  
         public async Task<IActionResult> Profile()  
         {  
             Console.WriteLine("profile");
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            Console.WriteLine(userId);
             UserInformation user = null;
             var authCookie = HttpContext.Request.Cookies[".AspNetCore.Cookies"];
             
@@ -88,22 +96,30 @@ namespace CAwebapp.Controllers
         }
 
         [HttpPost]  
-        public IActionResult Login(string userId, string password)  
+        public async Task<IActionResult> Login(string userId, string password)  
         {  
             var user = new {UserId=userId, Password=password};
      
             StringContent content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json");  
             string endpoint = "/auth/login";  
 
-            var response = _httpClient.PostAsync(endpoint, content).Result;
-            
-            var res = response.Content.ReadAsStringAsync();
-
-            Console.WriteLine(response.Headers);
-            var test = HttpContext.Request.Headers;
+            var response = await _httpClient.PostAsync(endpoint, content);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)  
             {  
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, userId)
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
+                                        new ClaimsPrincipal(claimsIdentity));
+
+                var data = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(JsonConvert.SerializeObject(data, Formatting.Indented));
+                
                 TempData["Profile"] = JsonConvert.SerializeObject(user); 
                 var getUser = _httpClient.GetAsync(endpoint).Result;
                 Console.WriteLine(getUser.Headers);
