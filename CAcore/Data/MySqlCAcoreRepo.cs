@@ -210,7 +210,7 @@ namespace CAcore.Data
 
             var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
             X509Crl nextCrl = crlGenerator.Generate(sigFactory);
-            writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
+            // writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
             writePem(_configuration["CrlPath"], nextCrl); //write new CRL
             
             // sanity check
@@ -264,7 +264,7 @@ namespace CAcore.Data
 
         private X509Certificate2 getRootCert() 
         {
-            X509Store store = new X509Store(StoreName.Root, StoreLocation.LocalMachine);
+            X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
             store.Open(OpenFlags.OpenExistingOnly);
             X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
             X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, _configuration["CertThumbprint"], false);
