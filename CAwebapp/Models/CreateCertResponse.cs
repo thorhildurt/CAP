@@ -9,5 +9,8 @@ namespace CAwebapp.Models
         public bool success { get; set; }
 
         public string cid { get; set; }
+
+        public byte[] certBodyPkcs12 { get; set; }
+
     }
 }

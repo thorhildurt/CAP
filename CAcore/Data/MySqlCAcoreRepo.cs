@@ -183,7 +183,7 @@ namespace CAcore.Data
                 UserId = uid,
                 CertId = cert.SerialNumber, 
                 SerialInDecimal = number,
-                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, (string)null),
+                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, user.UserId),
                 RawCertBody = cert.RawData,
                 PrivateKey = cert.GetECDsaPrivateKey().ExportECPrivateKey()
             };
