@@ -12,6 +12,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Net;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CAwebapp.Controllers
 {
@@ -60,18 +64,22 @@ namespace CAwebapp.Controllers
             }  
         }
 
+        [Authorize]
         [HttpGet]  
         public IActionResult Profile()  
         {  
             Console.WriteLine("profile");
-            var user = JsonConvert.DeserializeObject<UserInformation>(Convert.ToString(TempData["Profile"])); 
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            Console.WriteLine(userId);
+            //var user = JsonConvert.DeserializeObject<UserInformation>(Convert.ToString(TempData["Profile"])); 
         
-            if (user == null)
+            if (userId == null)
             {
                 return RedirectToAction("Login");
             }
 
-            string getUserEndpoint = "/user/" + user.UserId;
+            string getUserEndpoint = "/user/" + userId;
             Console.WriteLine("Getting users");
             var userResponse = _httpClient.GetAsync(getUserEndpoint).Result;
            
@@ -83,7 +91,7 @@ namespace CAwebapp.Controllers
                 ViewBag.User = JsonConvert.DeserializeObject<UserInformation>(responseBody); 
 
                 Console.WriteLine("Getting user certificates");
-                string getUserCertEndpoint = "/user/" + user.UserId + "/certificates";
+                string getUserCertEndpoint = "/user/" + userId + "/certificates";
                 var certResponse = _httpClient.GetAsync(getUserCertEndpoint).Result;
 
                 var certResponseBody = certResponse.Content.ReadAsStringAsync().Result;
@@ -101,12 +109,12 @@ namespace CAwebapp.Controllers
         } 
 
         // Create new certificate
+        [Authorize]
         public IActionResult CreateAndDownloadCert()  
         {  
-            //ClaimsPrincipal currentUser = this.User;
-            //var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
             Console.WriteLine("CreateAndDownloadCert");
-            var userId = "a3";
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
             var user = new UserInformation() {UserId = userId};
 
             StringContent content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"); 
@@ -130,11 +138,12 @@ namespace CAwebapp.Controllers
             return RedirectToAction("Profile");
         }
 
+        [Authorize]
         public IActionResult RevokeCert(string cid)
         {
             Console.WriteLine("RevokeCert");
-            // TODO: fetch logged in user
-            var userId = "a3";
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
             var user = new UserInformation() {UserId = userId};
             
             StringContent content = new StringContent("", Encoding.UTF8, "application/json"); 
@@ -150,12 +159,12 @@ namespace CAwebapp.Controllers
         }
 
         // Update user information
+        [Authorize]
         [HttpPost]  
         public IActionResult Profile(UserUpdate user)  
         {  
-            //ClaimsPrincipal currentUser = this.User;
-            //var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
-            var userId = "a3";
+            ClaimsPrincipal currentUser = this.User;
+            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
             user.UserId = userId;
             
             StringContent content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json"); 
@@ -176,21 +185,27 @@ namespace CAwebapp.Controllers
         }
 
         [HttpPost]  
-        public IActionResult Login(string userId, string password)  
+        public async Task<IActionResult> Login(string userId, string password)  
         {  
             var user = new {UserId=userId, Password=password};
      
             StringContent content = new StringContent(JsonConvert.SerializeObject(user), Encoding.UTF8, "application/json");  
             string endpoint = "/auth/login";  
 
-            var response = _httpClient.PostAsync(endpoint, content).Result;
-            
-            var res = response.Content.ReadAsStringAsync();
-
-            var test = HttpContext.Request.Headers;
+            var response = await _httpClient.PostAsync(endpoint, content);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)  
             {  
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, userId)
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
+                                        new ClaimsPrincipal(claimsIdentity));
+
                 TempData["Profile"] = JsonConvert.SerializeObject(user); 
                 return RedirectToAction("Profile");  
             }  
@@ -202,6 +217,12 @@ namespace CAwebapp.Controllers
             }       
         }
 
+        [HttpPost]  
+        public async Task<IActionResult> Logout()  
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login");
+        }
         public IActionResult Privacy()
         {
             return View();
