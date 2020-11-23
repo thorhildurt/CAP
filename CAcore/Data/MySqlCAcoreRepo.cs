@@ -286,7 +286,7 @@ namespace CAcore.Data
 
         private X509Certificate2 getRootCert() 
         {
-            X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+            X509Store store = new X509Store(StoreName.Root, StoreLocation.LocalMachine);
             store.Open(OpenFlags.OpenExistingOnly);
             X509Certificate2Collection collection = (X509Certificate2Collection)store.Certificates;
             X509Certificate2Collection fcollection = (X509Certificate2Collection)collection.Find(X509FindType.FindByThumbprint, _configuration["CertThumbprint"], false);
@@ -300,7 +300,7 @@ namespace CAcore.Data
 
             Log.Information("Root cert verify " + rootCert.Verify());
             _verify_certificate(rootCert);
-
+            // store.Close();
             return rootCert; 
         }
 
