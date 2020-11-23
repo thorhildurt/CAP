@@ -119,7 +119,11 @@ namespace CAwebapp.Controllers
                 Console.WriteLine("Certificate created! " + certificates.cid);
                 string downloadEndpoint = "/user/" + userId + "/certificates/download/" + certificates.cid;
                 var fileResponse = _httpClient.GetAsync(downloadEndpoint).Result;
-                Console.WriteLine(fileResponse);
+
+                var fileContent = fileResponse.Content.ReadAsStringAsync().Result;
+                var fileName = String.Format("{0}.pfx", certificates.cid);
+
+                return File(Encoding.UTF8.GetBytes(fileContent), "APPLICATION/binary", fileName);
             }
 
             TempData["Profile"] = JsonConvert.SerializeObject(user);
