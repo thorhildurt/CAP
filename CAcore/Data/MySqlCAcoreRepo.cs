@@ -134,7 +134,8 @@ namespace CAcore.Data
                 new X509EnhancedKeyUsageExtension(
                     new OidCollection
                     {
-                        new Oid("1.3.6.1.5.5.7.3.8")
+                        new Oid("1.3.6.1.5.5.7.3.8"),
+                        new Oid("1.3.6.1.5.5.7.3.2") // client authentication key usage
                     },
                     true));
             //adds an indentifier of public key to cert to make it easier to find
@@ -145,7 +146,8 @@ namespace CAcore.Data
             GeneralName uri = new GeneralName(GeneralName.UniformResourceIdentifier, _configuration["CrlDistPoint"]);
             DistributionPoint distPoint = new DistributionPoint(new DistributionPointName(DistributionPointName.FullName, uri), null, null);
             CrlDistPoint crlDistPoint = new CrlDistPoint(new DistributionPoint[] {distPoint});
-        
+
+            
 
             req.CertificateExtensions.Add(
                 new X509Extension(
