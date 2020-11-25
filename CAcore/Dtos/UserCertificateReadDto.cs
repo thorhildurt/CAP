@@ -19,10 +19,6 @@ namespace CAcore.Dtos
         public byte[] CertBodyPkcs12 { get; set; }
 
         [Required]
-        [Column("privateKey")]
-        public byte[] PrivateKey { get; set; }
-
-        [Required]
         [Column("revoked")]
         public bool revoked { get; set; }
     }
