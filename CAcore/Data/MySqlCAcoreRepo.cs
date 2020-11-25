@@ -183,7 +183,7 @@ namespace CAcore.Data
                 UserId = uid,
                 CertId = cert.SerialNumber, 
                 SerialInDecimal = number,
-                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, (string)null),
+                CertBodyPkcs12 = cert.Export(X509ContentType.Pkcs12, user.UserId),
                 RawCertBody = cert.RawData,
                 PrivateKey = cert.GetECDsaPrivateKey().ExportECPrivateKey()
             };
@@ -226,7 +226,8 @@ namespace CAcore.Data
 
             var sigFactory = new Asn1SignatureFactory("SHA256WITHECDSA", bouncyCastlePrivateKey);
             X509Crl nextCrl = crlGenerator.Generate(sigFactory);
-            //writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
+            
+            // writePem(_configuration["CrlOldPath"], rootCrl); // write old CRL as backup
             writePem(_configuration["CrlPath"], nextCrl); //write new CRL
             
             // sanity check
@@ -299,7 +300,7 @@ namespace CAcore.Data
 
             Log.Information("Root cert verify " + rootCert.Verify());
             _verify_certificate(rootCert);
-
+            // store.Close();
             return rootCert; 
         }
 

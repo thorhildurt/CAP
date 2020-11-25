@@ -2,24 +2,23 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace CAcore.Dtos
+namespace CAwebapp.Models
 {
-    public class UserCertificateReadDto
+    public class UserCertificate
     {
         [Key]
-        [Column("cid")]
         public string CertId { get; set; }
 
         [Required]
-        [Column("uid")]
         public string UserId { get; set; }
 
         [Required]
-        [Column("certBodyPkcs12")]
         public byte[] CertBodyPkcs12 { get; set; }
 
         [Required]
-        [Column("revoked")]
-        public bool revoked { get; set; }
+        public byte[] PrivateKey { get; set; }
+
+        [Required]
+        public bool Revoked { get; set; }
     }
 }

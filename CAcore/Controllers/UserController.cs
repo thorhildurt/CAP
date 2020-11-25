@@ -18,7 +18,7 @@ using Serilog;
 
 namespace CAcore.Controllers
 {
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    //[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     [Route("user")]
     [ApiController]
     public class UserController : ControllerBase
@@ -34,18 +34,18 @@ namespace CAcore.Controllers
             _userHelper= new UserHelper();
         }
 
-        [HttpGet(Name="GetLoggedInUser")]
-        public ActionResult <UserReadDto> GetLoggedInUser()
+        [HttpGet("{uid}", Name="GetLoggedInUser")]
+        public ActionResult <UserReadDto> GetLoggedInUser(String uid)
         {
             // Get the id of the logged in user. The id is located in claim identity in the authenticatiton cookie
-            ClaimsPrincipal currentUser = this.User;
-            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            //ClaimsPrincipal currentUser = this.User;
+            //var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
 
-            var user = _repository.GetUserByUserId(userId);
+            var user = _repository.GetUserByUserId(uid);
             if(user != null)
             {
                 // TODO: remove/change when we have decided our url
-                Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:8080/");
+                Response.Headers.Add("Access-Control-Allow-Origin", "https://localhost:3001/");
                 return Ok(_mapper.Map<UserReadDto>(user));
             }
             return NotFound();
@@ -55,9 +55,9 @@ namespace CAcore.Controllers
         public ActionResult <UserReadDto> UpdateLoggedInUser(UserUpdateDto userUpdateDto)
         {
             // Get the id of the logged in user. The id is located in claim identity in the authenticatiton cookie
-            ClaimsPrincipal currentUser = this.User;
-            var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
-            userUpdateDto.UserId = userId;
+            // ClaimsPrincipal currentUser = this.User;
+            // var userId = currentUser.FindFirst(ClaimTypes.Name).Value;
+            var userId = userUpdateDto.UserId;
 
             var userModel = _repository.GetUserByUserId(userId);
       
@@ -87,7 +87,7 @@ namespace CAcore.Controllers
             userModel.FirstName = !String.IsNullOrEmpty(userUpdateDto.FirstName) ? userUpdateDto.FirstName : userModel.FirstName;
             userModel.LastName = !String.IsNullOrEmpty(userUpdateDto.LastName) ? userUpdateDto.LastName: userModel.LastName;
             _repository.UpdateUser(userModel, userUpdateDto.NewPassword);
-            
+
             if(_repository.SaveChanges()) {
                 return Ok(new { message = "Success! User data updated", success = true });
             }

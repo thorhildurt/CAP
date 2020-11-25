@@ -9,13 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CAcore.Controllers {
 
-    [Route("/monitor")]
+    [Route("admin")]
     [ApiController]
-    public class MonitorController: ControllerBase 
+    public class AdminController: ControllerBase 
     {
         private readonly ICAcoreRepo _repository; 
         private readonly IMapper _mapper; 
-        public MonitorController(ICAcoreRepo repo, IMapper mapper) 
+        public AdminController(ICAcoreRepo repo, IMapper mapper) 
         {
             _repository = repo; 
             _mapper = mapper; 

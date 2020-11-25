@@ -1,0 +1,16 @@
+@{
+    ViewBag.Title = "Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="bg-white rounded shadow-sm py-5 px-4">
+        <h4>CA Admin</h4>
+        <label>Number of issued certificates: </label>
+        <div class="text-muted"> @ViewBag.Status.NumberOfIssuedCertificates</div>
+        <label>Number of revoked certificates: </label>
+        <div  class="text-muted">@ViewBag.Status.NumberOfRevokedCertificates</div>
+        <label> Current serial number: </label>
+        <div  class="text-muted">@ViewBag.Status.CurrentSerialNumber</div>
+    </div>
+</div>
