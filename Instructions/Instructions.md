@@ -14,6 +14,8 @@ Password: `Nice.Client20`
 7. Note that the login using certificates is not implemented in the system (explained in the report), thus for reviewing the admin interface go to there is enabled direct access to **https://192.168.56.5/Admin**
 
 ## Admin workstation login information
+Username: `caadmin`
+Password: `Good.Admin20`
 ### Admin SSH credentials for all the machines
 - **Web Server**
 SSH command: `ssh appsec@192.168.56.5` 
