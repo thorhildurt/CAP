@@ -3,7 +3,7 @@
 2. The machines have adapters configured to two seperate NAT networks. 
 - The public network: 192.168.56.0/24 (iMovies public)
 - The private network: 192.168.100.0/24 (Ingi)
-3. Create those networks in virtual box manuallt by going to:  Tools > Preferences > network > enter the plus icon to create two new networks
+3. Create those networks in virtual box manually by going to:  Tools > Preferences > network > enter the plus icon to the right to create two new networks
 4. Click the first network and click the edit label to the right. Update the following -> Network Name: `Ingi`  Network CIDR: `192.168.100.0/24`. Enter ok. 
 5. Click the second network and click the edit label to the right. Update the following -> Network Name: `iMovies public`  Network CIDR: `192.168.56.0/24`. Enter ok. 
 6. Start up the machines in the following order: **backup**, **ca database**, **ca core**, **router**, **ca web server**, **client**
