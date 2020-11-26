@@ -1,17 +1,23 @@
 ## Certification Authority Project - Team 7
 1. Import all .ova files into virtual box
-2. Start up the machines in the following order: **backup**, **ca database**, **ca core**, **router**, **ca web server**, **client**
-3. Enter the following credentials to log in to the client:
+2. The machines have adapters configured to two seperate NAT networks. 
+- The public network: 192.168.56.0/24 (iMovies public)
+- The private network: 192.168.100.0/24 (Ingi)
+3. Create those networks in virtual box manuallt by going to:  Tools > Preferences > network > enter the plus icon to create two new networks
+4. Click the first network and click the edit label to the right. Update the following -> Network Name: `Ingi`  Network CIDR: `192.168.100.0/24`. Enter ok. 
+5. Click the second network and click the edit label to the right. Update the following -> Network Name: `iMovies public`  Network CIDR: `192.168.56.0/24`. Enter ok. 
+6. Start up the machines in the following order: **backup**, **ca database**, **ca core**, **router**, **ca web server**, **client**
+7. Enter the following credentials to log in to the client:
 Username: `caclient`
 Password: `Nice.Client20`
-4. Open Firefox browser and go to **https://192.168.56.5/Home/Login**
-5. To login to the system you can use one of the projects predefined users:
+8. Open Firefox browser and go to **https://192.168.56.5/Home/Login**
+9. To login to the system you can use one of the projects predefined users:
 - lb D15Licz6
 - ps KramBamBuli 
 - ms MidbSvlJ
 - a3 Astrid
-6. Then you should be able to create/revoke certificates, update user information, and password. 
-7. Note that the login using certificates is not implemented in the system (explained in the report), thus for reviewing the admin interface go to there is enabled direct access to **https://192.168.56.5/Admin**
+10. Then you should be able to create/revoke certificates, update user information, and password. 
+11. Note that the login using certificates is not implemented in the system (explained in the report), thus for reviewing the admin interface go to there is enabled direct access to **https://192.168.56.5/Admin**
 
 ## Admin workstation login information
 Username: `caadmin`
